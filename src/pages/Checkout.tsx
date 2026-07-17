@@ -35,6 +35,10 @@ export function Checkout() {
     if (address.trim().length < 5) return setError('Please enter your full delivery address.')
     setError('')
     setSubmitting(true)
+    // Open the window synchronously inside the click gesture — a window.open
+    // after the awaited insert would be popup-blocked. We point it at
+    // WhatsApp once the order is saved.
+    const waWindow = window.open('about:blank', '_blank')
     try {
       const result = await placeOrder({
         orderCode: generateOrderCode(),
@@ -46,12 +50,10 @@ export function Checkout() {
         subtotal,
         offerNotes: detectOffers(priced, new Date()),
       })
-      // Open WhatsApp in the same tab via anchor click — most reliable on mobile
-      const a = document.createElement('a')
-      a.href = result.waLink
-      a.target = '_blank'
-      a.rel = 'noopener'
-      a.click()
+      if (waWindow && !waWindow.closed) {
+        waWindow.location.replace(result.waLink)
+      }
+      // If the popup was blocked, OrderPlaced shows a manual "tap here" link.
       dispatch({ type: 'clear' })
       navigate('/order-placed', { state: result })
     } finally {
