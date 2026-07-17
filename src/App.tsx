@@ -1,31 +1,50 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { CartProvider } from './cart/CartContext'
-import { Header } from './components/Header'
-import { BottomNav } from './components/BottomNav'
 import { OfflineBanner } from './components/OfflineBanner'
 import { Home } from './pages/Home'
 import { Menu } from './pages/Menu'
+import { ItemDetail } from './pages/ItemDetail'
 import { Cart } from './pages/Cart'
-import { Checkout } from './pages/Checkout'
+import { Details } from './pages/Details'
 import { OrderPlaced } from './pages/OrderPlaced'
+import { Track } from './pages/Track'
 import { About } from './pages/About'
+
+const Admin = lazy(() => import('./pages/admin/Admin'))
 
 export default function App() {
   return (
     <CartProvider>
-      <div className="mx-auto min-h-dvh max-w-xl pb-16">
-        <Header />
-        <OfflineBanner />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/order-placed" element={<OrderPlaced />} />
-          <Route path="/about" element={<About />} />
-        </Routes>
-        <BottomNav />
-      </div>
+      <Routes>
+        <Route
+          path="/admin/*"
+          element={
+            <Suspense fallback={<div className="flex min-h-dvh items-center justify-center bg-bg text-mut">Loading…</div>}>
+              <Admin />
+            </Suspense>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <div className="mx-auto min-h-dvh max-w-md bg-bg">
+              <OfflineBanner />
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/menu" element={<Menu />} />
+                <Route path="/item/:id" element={<ItemDetail />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/details" element={<Details />} />
+                <Route path="/profile" element={<Details />} />
+                <Route path="/order-placed" element={<OrderPlaced />} />
+                <Route path="/track/:code" element={<Track />} />
+                <Route path="/about" element={<About />} />
+              </Routes>
+            </div>
+          }
+        />
+      </Routes>
     </CartProvider>
   )
 }

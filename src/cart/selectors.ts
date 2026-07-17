@@ -8,6 +8,7 @@ export interface PricedLine extends CartLine {
   addOnNames: string[]
   unitPrice: number
   lineTotal: number
+  isVeg: boolean
 }
 
 /**
@@ -31,40 +32,51 @@ export function priceLines(lines: CartLine[]): PricedLine[] {
       addOnNames: line.addOnIds.map((id) => PIZZA_ADD_ONS.find((a) => a.id === id)?.name ?? id),
       unitPrice,
       lineTotal: unitPrice * line.qty,
+      isVeg: variant.isVeg ?? item.isVeg,
     })
   }
   return priced
-}
-
-export function subtotal(priced: PricedLine[]): number {
-  return priced.reduce((sum, l) => sum + l.lineTotal, 0)
 }
 
 export function itemCount(lines: CartLine[]): number {
   return lines.reduce((sum, l) => sum + l.qty, 0)
 }
 
-/**
- * Offers are detected and surfaced as notes — never auto-applied to prices.
- * The owner confirms and applies discounts when the order arrives on WhatsApp.
- */
-export function detectOffers(priced: PricedLine[], now: Date): string[] {
-  const notes: string[] = []
-  const largePizzas = priced
+export interface Bill {
+  itemTotal: number
+  /** 10% off when itemTotal >= 999 */
+  discount: number
+  /** 2+ large pizzas → a 750ml cold drink on the house */
+  freeDrink: boolean
+  toPay: number
+  /** Non-price notes, e.g. the Tuesday free-pizza deal (needs a pizza choice) */
+  notes: string[]
+}
+
+function largePizzaCount(priced: PricedLine[]): number {
+  return priced
     .filter((l) => {
       const item = getMenuItem(l.itemId)
-      return (item?.category === 'veg-pizza' || item?.category === 'nonveg-pizza') && l.variantId === 'L'
+      return (
+        (item?.category === 'veg-pizza' || item?.category === 'nonveg-pizza') && l.variantId === 'L'
+      )
     })
     .reduce((sum, l) => sum + l.qty, 0)
+}
 
-  if (largePizzas >= 2) {
-    notes.push('2 Large pizzas → FREE 750 ml cold drink')
-    if (now.getDay() === 2) {
-      notes.push('Tuesday deal: 2 Large pizzas → 1 Small pizza FREE')
-    }
+/**
+ * The two deterministic offers are applied automatically (matching the
+ * design); the Tuesday deal needs the customer to pick a small pizza, so it
+ * stays a note the owner honors on WhatsApp.
+ */
+export function computeBill(priced: PricedLine[], now: Date): Bill {
+  const itemTotal = priced.reduce((sum, l) => sum + l.lineTotal, 0)
+  const largePizzas = largePizzaCount(priced)
+  const freeDrink = largePizzas >= 2
+  const discount = itemTotal >= 999 ? Math.round(itemTotal * 0.1) : 0
+  const notes: string[] = []
+  if (freeDrink && now.getDay() === 2) {
+    notes.push('Tuesday deal: 2 Large pizzas → 1 Small pizza FREE — tell us your pick!')
   }
-  if (subtotal(priced) >= 999) {
-    notes.push('Order ≥ ₹999 → up to 10% discount')
-  }
-  return notes
+  return { itemTotal, discount, freeDrink, toPay: itemTotal - discount, notes }
 }

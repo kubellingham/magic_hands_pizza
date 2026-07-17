@@ -16,8 +16,8 @@ export default defineConfig({
         description: 'Fresh pizza near LPU, Meheru — open till 4 AM. Order on WhatsApp.',
         start_url: '/',
         display: 'standalone',
-        theme_color: '#C1121F',
-        background_color: '#FFF6EA',
+        theme_color: '#100d0b',
+        background_color: '#100d0b',
         icons: [
           { src: '/icons/pwa-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icons/pwa-512.png', sizes: '512x512', type: 'image/png' },
@@ -38,6 +38,19 @@ export default defineConfig({
             options: {
               cacheName: 'images',
               expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/,
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'google-fonts-css' },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-files',
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
             },
           },
         ],

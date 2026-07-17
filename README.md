@@ -1,97 +1,120 @@
-# Magic Hand's Pizza — Customer PWA 🍕
+# Magic Hand's Pizza — Ordering PWA 🍕
 
 An installable, offline-capable Progressive Web App for **Magic Hand's Pizza**
-(Opp. Green Valley, near Kapoor Castle PG, Vill. Meheru, LPU — open 11 AM to 4 AM).
+(Opp. Green Valley, near Kapoor Castle PG, Vill. Meheru, LPU — open 11 AM to 4 AM),
+implementing the dark-theme design from the Claude Design prototype
+(`Magic Hands Prototype.dc.html`).
 
-Customers browse the full menu, build a cart, and place an order that is
-**saved to a database and delivered to the owner's WhatsApp** (96469-52001) as a
-pre-filled, itemized message — matching exactly how the restaurant already takes orders.
+Two sides in one app:
+
+- **Customer app** (mobile) — browse the full menu, build a cart with sizes and
+  add-ons, place an order that is saved to the database **and** delivered to the
+  owner's WhatsApp (96469-52001) as a pre-filled itemized message, then track it live.
+- **Admin dashboard** (`/admin`, desktop) — staff log in to a live orders board
+  (New → Preparing → Ready → Out → Delivered), a kitchen display, menu
+  availability toggles, and simple sales stats. Status changes flow straight
+  back into the customer's tracking screen.
 
 ## Tech stack
 
 | Layer | Choice |
 |---|---|
 | Frontend | React 18 + TypeScript + Vite |
-| Styling | Tailwind CSS v4 |
-| PWA | vite-plugin-pwa (Workbox) — installable, offline menu |
+| Styling | Tailwind CSS v4 with prototype design tokens (Anton, Barlow Condensed, Plus Jakarta Sans) |
+| PWA | vite-plugin-pwa (Workbox) — installable, offline menu, cached Google Fonts |
 | State | React Context + `useReducer`, persisted to `localStorage` |
-| Backend | Supabase (Postgres + RLS) — order records only |
+| Backend | Supabase — Postgres + RLS + Auth (staff), no server code |
 | Ordering channel | WhatsApp deep link (`wa.me`) with a formatted order message |
 | Hosting | Vercel (static build; SPA rewrites in `vercel.json`) |
 
 ## How ordering works
 
-1. Customer builds a cart (sizes, veg/non-veg variants, pizza add-ons).
-2. Checkout collects name, 10-digit mobile, address, and notes.
-3. `placeOrder()` (`src/lib/orders.ts`):
-   - inserts the order into Supabase (denormalized items snapshot + client-generated order code),
-   - opens WhatsApp with the full order pre-typed — the customer just presses **Send**.
-4. **If the database is unreachable, the WhatsApp message still goes out.**
-   WhatsApp is the fulfillment channel; the database is the record. An order is never lost to a DB hiccup.
+1. Customer picks items (S/M/L pizzas, veg/non-veg variants, Cheese Burst /
+   Extra Cheese add-ons), chooses Delivery or Pickup and UPI or Cash.
+2. Delivery details come from an on-device profile (no OTP/SMS — saved in
+   `localStorage`, pre-filled every order).
+3. `placeOrder()` (`src/lib/orders.ts`) saves the order to Supabase, then opens
+   WhatsApp with the full order pre-typed — the customer just presses **Send**.
+   **If the database is unreachable, the WhatsApp message still goes out** —
+   WhatsApp is the fulfillment channel; the database powers the admin board and tracking.
+4. The confirmation screen links to `/track/<code>`, which polls order status
+   (no PII — see security below) as the kitchen moves it along.
 
-Offers (Tuesday deal, free cold drink with 2 large pizzas, ₹999+ discount) are
-**detected and advertised, never auto-applied** — the cart appends an
-"Offer eligible" note to the WhatsApp message and the owner applies the
-discount when confirming. This makes wrong-price bugs impossible.
+### Offers (auto-applied in the cart)
 
-## Security model (why the anon key in the client is safe)
+- **2 large pizzas → free 750 ml cold drink** — added as a ₹0 line.
+- **Order ≥ ₹999 → 10% off** — shown in the bill breakdown.
+- **Tuesday: 2 large → 1 small pizza free** — needs a pizza choice, so it rides
+  along as a note in the WhatsApp message for the owner to fulfil.
 
-The Supabase anon key ships in the bundle — that is by design; **Row Level
-Security is the boundary** (`supabase/migrations/001_orders.sql`):
+## Security model
 
-- `anon` can do exactly one thing: `INSERT` into `orders`.
-- There is no SELECT/UPDATE/DELETE policy for `anon` (plus an explicit `REVOKE`),
-  so customer PII — names, phones, addresses — can never be read back with the public key.
-  Verified with direct REST calls: reads/updates/deletes return `42501 permission denied`.
-- CHECK constraints validate the phone format (`^[6-9][0-9]{9}$`), bound all
-  text lengths, and cap the items JSON at 8 KB, limiting junk-insert abuse.
-- Junk rows are harmless anyway — fulfillment happens via the WhatsApp message,
-  not the table. (Phase-2 hardening if ever needed: captcha or an Edge Function rate limit.)
+The anon key ships in the bundle by design; **Row Level Security is the boundary**
+(`supabase/migrations/`):
+
+- `anon` can **INSERT** orders — nothing else. No select/update/delete policies,
+  so customer PII (names, phones, addresses) is never readable with the public key.
+- Order tracking uses `get_order_status(code)`, a `security definer` function
+  returning only `order_code, status, fulfilment, created_at` — no PII.
+- Signing up a Supabase account grants **nothing**: staff access is gated by the
+  `admin_users` table (checked via `is_admin()`), verified by test — a random
+  authenticated account sees zero orders.
+- Staff can read orders and update **only** the `status` column
+  (`grant update (status)`); availability toggles are staff-only writes,
+  anon-readable (no sensitive data).
+- CHECK constraints validate phone format, bound text lengths, and cap items JSON size.
 
 ## Development
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in the Supabase URL + anon key
-npm run dev                  # dev server
+cp .env.example .env.local   # Supabase URL + anon key
+npm run dev
 npm run build                # type-check + production build
-npm run preview              # serve the built PWA locally
+npm run preview
 ```
 
-Without `.env.local` the app still runs — orders simply skip the database and
-go straight to WhatsApp.
+Without `.env.local` the app still runs — orders skip the database and go
+straight to WhatsApp; tracking and admin need the backend.
 
-## Updating the menu (for maintainers)
+## Updating the menu
 
-The menu lives in code — `src/data/menu.ts` — not in the database, so it is
-bundled, type-checked, and automatically cached for offline browsing.
+The menu lives in code — `src/data/menu.ts` (~93 items) — bundled, type-checked,
+offline-cached. Change a price → commit → push → Vercel redeploys in about a
+minute. Add items with a **new unique `id`** using the `sml()` / `ml()` /
+`vegNonveg()` / `std()` helpers. Day-to-day availability ("out of stock") is
+toggled live from the admin's **Menu & Prices** view — no redeploy.
 
-- **Change a price:** edit the number in `menu.ts`, commit, push. Vercel redeploys in ~1 minute; customers get the update on their next visit (the service worker auto-updates).
-- **Add an item:** add an entry with a **new unique `id`** (never reuse an old id — it's the cart/order key). Pricing shapes:
-  - `sml(89, 169, 259)` — Small/Medium/Large pizzas (`ml(...)` for M/L-only)
-  - `vegNonveg(99, 129)` — dual veg/non-veg items (pasta, noodles, combos, wraps)
-  - `std(70)` — single flat price
-  - `supportsAddOns: true` — lets a pizza take Cheese Burst / Extra Cheese
-- **Hours / phone / offers:** `src/data/restaurant.ts`.
+Hours, phone, address, and offer copy: `src/data/restaurant.ts`.
+
+## Admin dashboard
+
+- URL: `/admin` (best on a laptop/tablet; the phone works in a pinch).
+- Sign in with the staff account (see deployment notes; add more staff by
+  inserting their email into `admin_users` and creating them a Supabase auth user).
+- **Live Orders**: Accept/Reject new orders, then Mark Ready → Hand to rider →
+  Delivered. Each step updates the customer's tracking page within ~12 s.
+- **Kitchen Display**: big-type tickets for new + preparing orders.
+- **Menu & Prices**: read-only prices (code-managed) + live availability toggles.
+- **Sales**: last-24h orders, revenue, average order, busiest hours, top items,
+  UPI/cash split.
 
 ## Deploying
 
-1. Push to GitHub; import the repo in Vercel (framework: Vite).
-2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in Vercel → Project → Environment Variables.
-3. Done — `vercel.json` already handles SPA routing, and HTTPS makes the PWA installable from Chrome's "Add to Home screen".
+1. Import the repo in Vercel (framework: Vite).
+2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` env vars.
+3. Done — HTTPS makes the PWA installable from Chrome's "Add to Home screen".
 
-## Viewing orders (owner/maintainer)
+## Verification (done in development)
 
-Orders are visible in the Supabase dashboard (Table Editor → `orders`) with the
-service-role context. A customer-facing status page / owner admin panel is a
-planned phase 2 (Supabase Auth + authenticated SELECT/UPDATE policies + an
-`/admin` route).
-
-## Verification checklist (done in development)
-
-- ✅ 93 menu items audited against the printed menu (17 veg + 13 non-veg pizzas, add-ons priced per size)
-- ✅ Cart totals hand-checked across all pricing shapes (incl. pizza + Cheese Burst)
-- ✅ RLS probed via REST: anon insert 201; select/update/delete 401; bad phone rejected 400
-- ✅ End-to-end order in headless Chromium: form → DB row → wa.me message → confirmation page → cart cleared
-- ✅ Offline: full menu + cart browsable with no connection; checkout blocked with a clear message
-- 📋 Remaining before launch: install test on a real Android phone + one live order to the owner's WhatsApp
+- ✅ Menu audited against the printed menu; all four pricing shapes exercised
+- ✅ Offer math: 2× Magic Pizza Hut Spl. (L) = ₹1,038 → free drink + −₹104 → ₹934,
+  correct in cart, WhatsApp message, and DB row
+- ✅ Full lifecycle in headless Chromium: order → admin Accept → Kitchen →
+  Ready → Out → Delivered, with the customer's tracking page following each step
+- ✅ Availability toggle in admin grays the item out for customers
+- ✅ RLS probed end-to-end: anon read/update/delete denied; non-staff
+  authenticated account sees zero orders; bad phone rejected by CHECK
+- ✅ Offline: menu + cart browsable, checkout blocked with a clear message
+- 📋 Remaining before launch: real Android install test + one live order to the
+  owner's WhatsApp

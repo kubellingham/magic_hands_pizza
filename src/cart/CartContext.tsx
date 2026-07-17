@@ -1,13 +1,13 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react'
 import { cartReducer, type CartAction, type CartLine, type CartState } from './cartReducer'
-import { itemCount, priceLines, subtotal, type PricedLine } from './selectors'
+import { computeBill, itemCount, priceLines, type Bill, type PricedLine } from './selectors'
 
 const STORAGE_KEY = 'mhp-cart-v1'
 
 interface CartValue {
   lines: CartLine[]
   priced: PricedLine[]
-  subtotal: number
+  bill: Bill
   count: number
   dispatch: (action: CartAction) => void
 }
@@ -42,7 +42,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return {
       lines: state.lines,
       priced,
-      subtotal: subtotal(priced),
+      bill: computeBill(priced, new Date()),
       count: itemCount(state.lines),
       dispatch,
     }

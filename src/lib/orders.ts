@@ -8,13 +8,16 @@ export function generateOrderCode(): string {
 export interface PlaceOrderResult {
   orderCode: string
   waLink: string
+  toPay: number
+  payment: 'upi' | 'cod'
   /** false when the DB insert failed — the WhatsApp message still carries the order */
   savedToDb: boolean
 }
 
 /**
- * WhatsApp is the owner's real notification channel; Supabase is the record.
- * A DB failure must never lose an order, so we always return the wa.me link.
+ * WhatsApp is the owner's real notification channel; Supabase is the record
+ * (and powers the admin board + tracking). A DB failure must never lose an
+ * order, so we always return the wa.me link.
  */
 export async function placeOrder(order: OrderDetails): Promise<PlaceOrderResult> {
   const message = buildOrderMessage(order)
@@ -23,21 +26,29 @@ export async function placeOrder(order: OrderDetails): Promise<PlaceOrderResult>
 
   if (supabase) {
     try {
+      const items = order.priced.map((l) => ({
+        item: l.name,
+        variant: l.variantLabel || null,
+        addOns: l.addOnNames,
+        qty: l.qty,
+        lineTotal: l.lineTotal,
+      }))
+      if (order.bill.freeDrink) {
+        items.push({ item: 'Cold Drink 750 ml (FREE offer)', variant: null, addOns: [], qty: 1, lineTotal: 0 })
+      }
       const insert = supabase.from('orders').insert({
         order_code: order.orderCode,
         customer_name: order.customerName,
         phone: order.phone,
         address: order.address,
         notes: order.notes.trim() || null,
-        items: order.priced.map((l) => ({
-          item: l.name,
-          variant: l.variantLabel || null,
-          addOns: l.addOnNames,
-          qty: l.qty,
-          lineTotal: l.lineTotal,
-        })),
-        subtotal: order.subtotal,
-        offer_note: order.offerNotes.join('; ') || null,
+        items,
+        subtotal: order.bill.itemTotal,
+        discount: order.bill.discount,
+        total: order.bill.toPay,
+        fulfilment: order.fulfilment,
+        payment: order.payment,
+        offer_note: order.bill.notes.join('; ') || null,
       })
       const timeout = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('timeout')), 3000),
@@ -49,5 +60,5 @@ export async function placeOrder(order: OrderDetails): Promise<PlaceOrderResult>
     }
   }
 
-  return { orderCode: order.orderCode, waLink, savedToDb }
+  return { orderCode: order.orderCode, waLink, toPay: order.bill.toPay, payment: order.payment, savedToDb }
 }

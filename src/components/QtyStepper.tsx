@@ -2,24 +2,26 @@ interface Props {
   qty: number
   onChange: (qty: number) => void
   min?: number
+  size?: 'sm' | 'lg'
 }
 
-export function QtyStepper({ qty, onChange, min = 0 }: Props) {
+export function QtyStepper({ qty, onChange, min = 0, size = 'sm' }: Props) {
+  const pad = size === 'lg' ? 'gap-4 px-3.5 py-1.5' : 'gap-2.5 px-3 py-1'
   return (
-    <div className="inline-flex items-center rounded-lg border border-brand text-brand">
+    <div className={`inline-flex items-center rounded-full bg-card ${pad}`}>
       <button
         type="button"
         aria-label="Decrease quantity"
-        className="px-3 py-1 text-lg font-bold active:bg-brand/10"
+        className="text-xl font-bold text-brand"
         onClick={() => onChange(Math.max(min, qty - 1))}
       >
         −
       </button>
-      <span className="min-w-8 text-center text-sm font-semibold">{qty}</span>
+      <span className="min-w-4 text-center text-sm font-bold text-white">{qty}</span>
       <button
         type="button"
         aria-label="Increase quantity"
-        className="px-3 py-1 text-lg font-bold active:bg-brand/10"
+        className="text-xl font-bold text-brand"
         onClick={() => onChange(qty + 1)}
       >
         +
