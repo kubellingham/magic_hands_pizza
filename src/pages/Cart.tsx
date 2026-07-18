@@ -5,6 +5,7 @@ import { formatINR } from '../lib/format'
 import { loadProfile, isProfileComplete, currentAddress, type Profile } from '../lib/profile'
 import { generateOrderCode, placeOrder } from '../lib/orders'
 import { saveLastOrder } from '../lib/lastOrder'
+import { addOrderToHistory } from '../lib/orderHistory'
 import { useOnline } from '../components/OfflineBanner'
 import { QtyStepper } from '../components/QtyStepper'
 import { VegDot } from '../components/VegDot'
@@ -59,6 +60,28 @@ export function Cart() {
         bill,
       })
       saveLastOrder(result.orderCode)
+      addOrderToHistory({
+        code: result.orderCode,
+        placedAt: Date.now(),
+        items: [
+          ...priced.map((l) => ({
+            name: l.name,
+            variant: l.variantLabel || null,
+            addOns: l.addOnNames,
+            qty: l.qty,
+            lineTotal: l.lineTotal,
+          })),
+          ...(bill.freeDrink
+            ? [{ name: 'Cold Drink 750 ml (FREE offer)', variant: null, addOns: [], qty: 1, lineTotal: 0 }]
+            : []),
+        ],
+        itemTotal: bill.itemTotal,
+        discount: bill.discount,
+        total: bill.toPay,
+        payment,
+        fulfilment,
+        customerName: profile.name.trim(),
+      })
       dispatch({ type: 'clear' })
       // The confirmation screen counts down before opening WhatsApp,
       // so the customer sees what's about to happen.

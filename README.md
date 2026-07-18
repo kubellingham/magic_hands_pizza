@@ -42,8 +42,17 @@ Two sides in one app:
    still goes out** — WhatsApp is the fulfillment channel; the database powers
    the admin board and tracking.
 4. The confirmation screen links to `/track/<code>`, which polls order status
-   (no PII — see security below) as the kitchen moves it along. While an
-   order is in flight, Home shows a floating status strip linking to tracking.
+   every 5 seconds (no PII — see security below) as the kitchen moves it
+   along. While an order is in flight, Home shows a floating status strip
+   linking to tracking.
+5. Every order is also saved on the customer's phone: **My Orders** (🧾 on
+   Home, or from the profile) lists past orders with live status, a Track
+   link while active, and a downloadable PDF receipt once delivered.
+6. **Digital receipts**: when staff press "Delivered" (or "Picked up") on the
+   live board, a branded PDF receipt downloads immediately and a dialog opens
+   WhatsApp to the customer's number with the receipt message — staff attach
+   the PDF and send. (wa.me links can't attach files automatically, so the
+   attach step is the one manual action.)
 5. Photos: drop images into `public/images/` (see the README there) — menu
    item photos, the brand logo, and a UPI QR that appears on the
    order-confirmation screen for UPI orders. Everything falls back to

@@ -45,13 +45,22 @@ export function Home() {
             {address ? addressLabel(address) : 'Tap to set your address'} <span className="text-brand">▾</span>
           </div>
         </button>
-        <Link
-          to="/profile"
-          aria-label="Your details"
-          className="flex h-[38px] w-[38px] items-center justify-center rounded-full border border-white/20 bg-white/10 text-[15px] font-extrabold"
-        >
-          {profile.name ? profile.name[0].toUpperCase() : 'M'}
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/orders"
+            aria-label="My orders"
+            className="flex h-[38px] w-[38px] items-center justify-center rounded-full border border-white/20 bg-white/10 text-base"
+          >
+            🧾
+          </Link>
+          <Link
+            to="/profile"
+            aria-label="Your details"
+            className="flex h-[38px] w-[38px] items-center justify-center rounded-full border border-white/20 bg-white/10 text-[15px] font-extrabold"
+          >
+            {profile.name ? profile.name[0].toUpperCase() : 'M'}
+          </Link>
+        </div>
       </div>
 
       {/* Logo + timings */}

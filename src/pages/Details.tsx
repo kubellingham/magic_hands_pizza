@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { loadProfile, saveProfile, MAX_ADDRESSES, type Profile } from '../lib/profile'
 import { isValidIndianMobile } from '../lib/format'
 import { RESTAURANT } from '../data/restaurant'
@@ -66,9 +66,14 @@ export function Details() {
         <div className="mt-2 text-xs text-mut">Meheru, LPU Low Gate · {RESTAURANT.hoursDisplay}</div>
       </div>
 
-      <div className="px-6 pt-5">
-        <h1 className="font-cond text-2xl leading-[1.05] font-bold">Your details</h1>
-        <p className="mt-1.5 text-xs text-mut">Saved on your phone only — used to fill your orders.</p>
+      <div className="flex items-start justify-between px-6 pt-5">
+        <div>
+          <h1 className="font-cond text-2xl leading-[1.05] font-bold">Your details</h1>
+          <p className="mt-1.5 text-xs text-mut">Saved on your phone only — used to fill your orders.</p>
+        </div>
+        <Link to="/orders" className="mt-1 shrink-0 rounded-xl bg-chip px-3.5 py-2 text-xs font-bold text-soft">
+          🧾 My orders
+        </Link>
       </div>
 
       <div className="flex flex-col gap-3 px-6 pt-4">

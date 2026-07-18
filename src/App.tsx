@@ -9,6 +9,7 @@ import { Cart } from './pages/Cart'
 import { Details } from './pages/Details'
 import { OrderPlaced } from './pages/OrderPlaced'
 import { Track } from './pages/Track'
+import { Orders } from './pages/Orders'
 import { About } from './pages/About'
 
 const Admin = lazy(() => import('./pages/admin/Admin'))
@@ -39,6 +40,7 @@ export default function App() {
                 <Route path="/profile" element={<Details />} />
                 <Route path="/order-placed" element={<OrderPlaced />} />
                 <Route path="/track/:code" element={<Track />} />
+                <Route path="/orders" element={<Orders />} />
                 <Route path="/about" element={<About />} />
               </Routes>
             </div>

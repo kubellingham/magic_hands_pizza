@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { fetchOrderStatus, type TrackedOrder, type OrderStatus } from '../lib/tracking'
 import { RESTAURANT } from '../data/restaurant'
 
-const POLL_MS = 12_000
+// 5s keeps the timeline feeling truly live while staying gentle on the free tier
+const POLL_MS = 5_000
 
 const STATUS_RANK: Record<OrderStatus, number> = {
   new: 0,
