@@ -126,6 +126,51 @@ export function useAdminPrices(): {
   return { overrides, savePrice }
 }
 
+/** Staff list management — RLS restricts every call to admins. */
+export function useStaff(currentEmail: string | null) {
+  const [staff, setStaff] = useState<string[]>([])
+  const [error, setError] = useState('')
+
+  const refresh = useCallback(async () => {
+    if (!supabase) return
+    const { data, error: err } = await supabase.from('admin_users').select('email').order('email')
+    if (err) return setError(err.message)
+    setError('')
+    setStaff((data ?? []).map((r) => r.email as string))
+  }, [])
+
+  useEffect(() => {
+    refresh()
+  }, [refresh])
+
+  const addStaff = useCallback(
+    async (email: string): Promise<string> => {
+      if (!supabase) return 'Backend not configured.'
+      const normalized = email.trim().toLowerCase()
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) return 'Enter a valid email address.'
+      const { error: err } = await supabase.from('admin_users').insert({ email: normalized })
+      if (err) return err.code === '23505' ? 'That email is already staff.' : err.message
+      await refresh()
+      return ''
+    },
+    [refresh],
+  )
+
+  const removeStaff = useCallback(
+    async (email: string): Promise<string> => {
+      if (!supabase) return 'Backend not configured.'
+      if (email === currentEmail) return "You can't remove yourself."
+      const { error: err } = await supabase.from('admin_users').delete().eq('email', email)
+      if (err) return err.message
+      await refresh()
+      return ''
+    },
+    [currentEmail, refresh],
+  )
+
+  return { staff, error, addStaff, removeStaff }
+}
+
 export function ageLabel(iso: string): string {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000)
   if (mins < 1) return 'just now'

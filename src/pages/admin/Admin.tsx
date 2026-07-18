@@ -6,14 +6,17 @@ import { LiveBoard } from './LiveBoard'
 import { Kitchen } from './Kitchen'
 import { MenuManager } from './MenuManager'
 import { Sales } from './Sales'
+import { Staff } from './Staff'
 
-type View = 'live' | 'kitchen' | 'menu' | 'sales'
+type View = 'live' | 'kitchen' | 'menu' | 'sales' | 'staff'
 type AuthState = 'checking' | 'signed-out' | 'not-staff' | 'staff'
 
 function Login({ onSignedIn }: { onSignedIn: () => void }) {
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
 
   const submit = async (e: React.FormEvent) => {
@@ -21,7 +24,19 @@ function Login({ onSignedIn }: { onSignedIn: () => void }) {
     if (!supabase) return setError('Backend not configured.')
     setBusy(true)
     setError('')
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password })
+    setNotice('')
+    if (mode === 'signup') {
+      // Signing up only creates the account — dashboard access still requires
+      // an existing admin to have added this email to the staff list.
+      const { data, error: err } = await supabase.auth.signUp({ email: email.trim().toLowerCase(), password })
+      setBusy(false)
+      if (err) return setError(err.message)
+      if (data.session) return onSignedIn()
+      setMode('signin')
+      setNotice('Account created — confirm via the link in your email, then sign in.')
+      return
+    }
+    const { error: err } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password })
     setBusy(false)
     if (err) return setError(err.message)
     onSignedIn()
@@ -34,7 +49,9 @@ function Login({ onSignedIn }: { onSignedIn: () => void }) {
     <div className="flex min-h-dvh items-center justify-center bg-bg px-6">
       <form onSubmit={submit} className="w-full max-w-sm rounded-2xl border border-white/5 bg-surface p-7">
         <Logo />
-        <div className="font-anton mt-1 text-center text-[10px] tracking-[5px] text-mut">STAFF LOGIN</div>
+        <div className="font-anton mt-1 text-center text-[10px] tracking-[5px] text-mut">
+          {mode === 'signin' ? 'STAFF LOGIN' : 'NEW STAFF ACCOUNT'}
+        </div>
         <div className="mt-6 flex flex-col gap-3">
           <input
             className={inputClass}
@@ -47,19 +64,36 @@ function Login({ onSignedIn }: { onSignedIn: () => void }) {
           <input
             className={inputClass}
             type="password"
-            placeholder="Password"
-            autoComplete="current-password"
+            placeholder={mode === 'signup' ? 'Choose a password (min 6 chars)' : 'Password'}
+            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
+        {mode === 'signup' && (
+          <p className="mt-3 text-[11px] leading-relaxed text-mut">
+            Use the email an admin added to the staff list — the account works only once you're listed.
+          </p>
+        )}
         {error && <p className="mt-3 text-xs font-semibold text-brand">{error}</p>}
+        {notice && <p className="mt-3 text-xs font-semibold text-veg">{notice}</p>}
         <button
           type="submit"
           disabled={busy}
           className="mt-5 w-full rounded-[14px] bg-brand py-3 text-sm font-extrabold text-white disabled:opacity-50"
         >
-          {busy ? 'Signing in…' : 'Sign in'}
+          {busy ? 'Working…' : mode === 'signin' ? 'Sign in' : 'Create account'}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setMode(mode === 'signin' ? 'signup' : 'signin')
+            setError('')
+            setNotice('')
+          }}
+          className="mt-3 w-full text-center text-xs font-semibold text-mut hover:text-brand"
+        >
+          {mode === 'signin' ? 'New staff member? Create staff account' : 'Already have an account? Sign in'}
         </button>
       </form>
     </div>
@@ -71,9 +105,10 @@ const NAV: Array<{ view: View; label: string; icon: string }> = [
   { view: 'kitchen', label: 'Kitchen Display', icon: '🍳' },
   { view: 'menu', label: 'Menu & Prices', icon: '📝' },
   { view: 'sales', label: 'Sales', icon: '📊' },
+  { view: 'staff', label: 'Staff', icon: '👥' },
 ]
 
-function Dashboard({ onSignOut }: { onSignOut: () => void }) {
+function Dashboard({ onSignOut, currentEmail }: { onSignOut: () => void; currentEmail: string | null }) {
   const [view, setView] = useState<View>('live')
   const { orders, error, setStatus } = useAdminOrders()
   const newCount = orders.filter((o) => o.status === 'new').length
@@ -133,6 +168,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
         {view === 'kitchen' && <Kitchen orders={orders} setStatus={setStatus} />}
         {view === 'menu' && <MenuManager />}
         {view === 'sales' && <Sales orders={orders} />}
+        {view === 'staff' && <Staff currentEmail={currentEmail} />}
       </main>
     </div>
   )
@@ -140,11 +176,13 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
 
 export default function Admin() {
   const [auth, setAuth] = useState<AuthState>('checking')
+  const [currentEmail, setCurrentEmail] = useState<string | null>(null)
 
   const check = async () => {
     if (!supabase) return setAuth('signed-out')
     const { data } = await supabase.auth.getSession()
     if (!data.session) return setAuth('signed-out')
+    setCurrentEmail(data.session.user.email?.toLowerCase() ?? null)
     const { data: isAdmin } = await supabase.rpc('is_admin')
     setAuth(isAdmin ? 'staff' : 'not-staff')
   }
@@ -166,11 +204,14 @@ export default function Admin() {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-bg px-8 text-center text-white">
         <p className="text-sm">This account isn&rsquo;t on the staff list.</p>
+        <p className="max-w-xs text-xs text-mut">
+          Ask an existing admin to add {currentEmail ?? 'your email'} under Staff, then reload this page.
+        </p>
         <button type="button" onClick={signOut} className="text-sm font-bold text-brand">
           Sign in with a different account
         </button>
       </div>
     )
   }
-  return <Dashboard onSignOut={signOut} />
+  return <Dashboard onSignOut={signOut} currentEmail={currentEmail} />
 }

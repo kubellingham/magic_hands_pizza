@@ -58,7 +58,9 @@ The anon key ships in the bundle by design; **Row Level Security is the boundary
   returning only `order_code, status, fulfilment, created_at` — no PII.
 - Signing up a Supabase account grants **nothing**: staff access is gated by the
   `admin_users` table (checked via `is_admin()`), verified by test — a random
-  authenticated account sees zero orders.
+  authenticated account sees zero orders, cannot read the staff list, and
+  cannot add itself to it. Only existing admins manage the list, and an admin
+  cannot delete their own entry (enforced by RLS, not just the UI).
 - Staff can read orders and update **only** the `status` column
   (`grant update (status)`); availability and price overrides are staff-only
   writes, anon-readable (no sensitive data — verified: anon insert denied).
@@ -98,8 +100,13 @@ Hours, phone, address, and offer copy: `src/data/restaurant.ts`.
 ## Admin dashboard
 
 - URL: `/admin` (best on a laptop/tablet; the phone works in a pinch).
-- Sign in with the staff account (see deployment notes; add more staff by
-  inserting their email into `admin_users` and creating them a Supabase auth user).
+- Sign in with a staff account. **Adding staff is self-service**: any admin
+  opens the **Staff** view, adds the new person's email, and the new person
+  uses "Create staff account" on the `/admin` login screen with that exact
+  email (confirm via the emailed link, then sign in). Admins can remove any
+  staff member except themselves — no accidental lock-outs.
+  Note: Supabase's built-in email service is rate-limited on the free tier
+  (a few confirmation emails per hour), which is plenty for occasional staff changes.
 - **Live Orders**: Accept/Reject new orders, then Mark Ready → Hand to rider →
   Delivered. Each step updates the customer's tracking page within ~12 s.
 - **Kitchen Display**: big-type tickets for new + preparing orders.
