@@ -3,25 +3,31 @@ import { itemsInCategory } from '../data/menu'
 import { MENU_GROUPS, CATEGORY_TITLES } from '../data/groups'
 import type { CategoryId, MenuItem } from '../data/types'
 import { useAvailability, isAvailable } from '../lib/availability'
+import { usePriceOverrides, effectivePrice, type OverrideMap } from '../lib/livePrices'
 import { VegDot } from '../components/VegDot'
 import { StickyCartBar } from '../components/StickyCartBar'
 
 const PIZZA_CATS: CategoryId[] = ['veg-pizza', 'nonveg-pizza']
 
-function priceCols(item: MenuItem): { s?: number; m?: number; l?: number } {
-  const find = (id: string) => item.variants.find((v) => v.id === id)?.price
+function priceCols(item: MenuItem, overrides: OverrideMap): { s?: number; m?: number; l?: number } {
+  const find = (id: string) => {
+    const variant = item.variants.find((v) => v.id === id)
+    return variant ? effectivePrice(overrides, item.id, variant) : undefined
+  }
   return { s: find('S'), m: find('M'), l: find('L') }
 }
 
-function flatPriceLabel(item: MenuItem): string {
-  if (item.variants.length === 1) return `₹${item.variants[0].price}`
-  return item.variants.map((v) => v.price).join(' / ')
+function flatPriceLabel(item: MenuItem, overrides: OverrideMap): string {
+  const prices = item.variants.map((v) => effectivePrice(overrides, item.id, v))
+  if (prices.length === 1) return `₹${prices[0]}`
+  return prices.join(' / ')
 }
 
 export function Menu() {
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const availability = useAvailability()
+  const overrides = usePriceOverrides()
   const activeGroup = params.get('group') ?? 'all'
   const groups = activeGroup === 'all' ? MENU_GROUPS : MENU_GROUPS.filter((g) => g.id === activeGroup)
 
@@ -73,7 +79,7 @@ export function Menu() {
                 </div>
                 {items.map((item) => {
                   const available = isAvailable(availability, item.id)
-                  const cols = priceCols(item)
+                  const cols = priceCols(item, overrides)
                   return (
                     <button
                       key={item.id}
@@ -105,7 +111,7 @@ export function Menu() {
                         </span>
                       ) : (
                         <span className="font-cond min-w-10 text-right text-[15px] font-bold whitespace-nowrap text-soft">
-                          {flatPriceLabel(item)}
+                          {flatPriceLabel(item, overrides)}
                         </span>
                       )}
                       <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[9px] bg-brand text-lg text-white">

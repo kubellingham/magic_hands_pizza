@@ -6,6 +6,7 @@ import { useCart } from '../cart/CartContext'
 import { formatINR } from '../lib/format'
 import { foodGradient } from '../lib/foodArt'
 import { useAvailability, isAvailable } from '../lib/availability'
+import { usePriceOverrides, effectivePrice } from '../lib/livePrices'
 import { VegDot } from '../components/VegDot'
 import { QtyStepper } from '../components/QtyStepper'
 
@@ -32,6 +33,7 @@ export function ItemDetail() {
   const navigate = useNavigate()
   const { dispatch } = useCart()
   const availability = useAvailability()
+  const overrides = usePriceOverrides()
   const item = id ? getMenuItem(id) : undefined
   const [variantId, setVariantId] = useState<string | null>(null)
   const [addOnIds, setAddOnIds] = useState<AddOnId[]>([])
@@ -53,7 +55,7 @@ export function ItemDetail() {
   const addOnsTotal = item.supportsAddOns
     ? addOnIds.reduce((sum, a) => sum + addOnPrice(a, variant.id), 0)
     : 0
-  const total = (variant.price + addOnsTotal) * qty
+  const total = (effectivePrice(overrides, item.id, variant) + addOnsTotal) * qty
 
   const toggleAddOn = (a: AddOnId) =>
     setAddOnIds((prev) => (prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]))
@@ -105,7 +107,7 @@ export function ItemDetail() {
                   }`}
                 >
                   <div className="text-[13px] font-bold">{v.label || item.name}</div>
-                  <div className="mt-0.5 text-xs">{formatINR(v.price)}</div>
+                  <div className="mt-0.5 text-xs">{formatINR(effectivePrice(overrides, item.id, v))}</div>
                 </button>
               )
             })}

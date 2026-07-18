@@ -60,8 +60,8 @@ The anon key ships in the bundle by design; **Row Level Security is the boundary
   `admin_users` table (checked via `is_admin()`), verified by test — a random
   authenticated account sees zero orders.
 - Staff can read orders and update **only** the `status` column
-  (`grant update (status)`); availability toggles are staff-only writes,
-  anon-readable (no sensitive data).
+  (`grant update (status)`); availability and price overrides are staff-only
+  writes, anon-readable (no sensitive data — verified: anon insert denied).
 - CHECK constraints validate phone format, bound text lengths, and cap items JSON size.
 
 ## Development
@@ -80,10 +80,18 @@ straight to WhatsApp; tracking and admin need the backend.
 ## Updating the menu
 
 The menu lives in code — `src/data/menu.ts` (~93 items) — bundled, type-checked,
-offline-cached. Change a price → commit → push → Vercel redeploys in about a
-minute. Add items with a **new unique `id`** using the `sml()` / `ml()` /
-`vegNonveg()` / `std()` helpers. Day-to-day availability ("out of stock") is
-toggled live from the admin's **Menu & Prices** view — no redeploy.
+offline-cached. Add items with a **new unique `id`** using the `sml()` / `ml()` /
+`vegNonveg()` / `std()` helpers, then commit → push → Vercel redeploys.
+
+Day-to-day changes need **no redeploy** — both live in the admin's
+**Menu & Prices** view:
+
+- **Availability** ("out of stock") toggles.
+- **Prices**: edit any price cell and press Enter — customers see it
+  immediately (menu, item page, cart, WhatsApp message, order record). Edited
+  prices show in gold; entering the printed base price resets the override.
+  Overrides live in the `price_overrides` table on top of the code menu, so
+  offline customers fall back to the printed base prices.
 
 Hours, phone, address, and offer copy: `src/data/restaurant.ts`.
 
@@ -95,7 +103,7 @@ Hours, phone, address, and offer copy: `src/data/restaurant.ts`.
 - **Live Orders**: Accept/Reject new orders, then Mark Ready → Hand to rider →
   Delivered. Each step updates the customer's tracking page within ~12 s.
 - **Kitchen Display**: big-type tickets for new + preparing orders.
-- **Menu & Prices**: read-only prices (code-managed) + live availability toggles.
+- **Menu & Prices**: live price editing + availability toggles (see "Updating the menu").
 - **Sales**: last-24h orders, revenue, average order, busiest hours, top items,
   UPI/cash split.
 

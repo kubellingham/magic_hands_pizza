@@ -1,30 +1,73 @@
 import { useState } from 'react'
 import { itemsInCategory } from '../../data/menu'
 import { MENU_GROUPS, CATEGORY_TITLES } from '../../data/groups'
-import type { MenuItem } from '../../data/types'
+import type { MenuItem, Variant } from '../../data/types'
 import { VegDot } from '../../components/VegDot'
-import { useAdminAvailability } from './adminData'
+import { effectivePrice, type OverrideMap } from '../../lib/livePrices'
+import { useAdminAvailability, useAdminPrices } from './adminData'
 
-function PriceCell({ value }: { value?: number }) {
-  return (
-    <span className="w-[60px] rounded-[7px] bg-card py-1 text-center text-[13px] text-soft">
-      {value ?? '—'}
-    </span>
-  )
-}
-
-function priceFor(item: MenuItem, id: string): number | undefined {
-  return item.variants.find((v) => v.id === id)?.price
+interface PriceCellProps {
+  item: MenuItem
+  variant?: Variant
+  overrides: OverrideMap
+  savePrice: (itemId: string, variantId: string, price: number, basePrice: number) => Promise<boolean>
 }
 
 /**
- * Prices are read-only here on purpose — the menu is code-managed
- * (src/data/menu.ts) so it stays versioned and offline-cached. Availability
- * is the live, owner-controlled switch.
+ * Editable price. Saves on blur/Enter; entering the printed base price (or
+ * clearing the field) resets the override. Overridden prices show in gold.
  */
+function PriceCell({ item, variant, overrides, savePrice }: PriceCellProps) {
+  const [saving, setSaving] = useState(false)
+  if (!variant) {
+    return <span className="w-[60px] py-1 text-center text-[13px] text-mut">—</span>
+  }
+  const effective = effectivePrice(overrides, item.id, variant)
+  const overridden = effective !== variant.price
+
+  const commit = async (input: HTMLInputElement) => {
+    const parsed = parseInt(input.value, 10)
+    const next = Number.isNaN(parsed) ? variant.price : parsed
+    if (next === effective) {
+      input.value = String(effective)
+      return
+    }
+    if (next < 1 || next > 20000) {
+      input.value = String(effective)
+      return
+    }
+    setSaving(true)
+    const ok = await savePrice(item.id, variant.id, next, variant.price)
+    setSaving(false)
+    if (!ok) input.value = String(effective)
+  }
+
+  return (
+    <input
+      key={`${item.id}:${variant.id}:${effective}`}
+      type="text"
+      inputMode="numeric"
+      defaultValue={effective}
+      aria-label={`${item.name} ${variant.label || 'price'}`}
+      title={overridden ? `Overridden (printed: ₹${variant.price}) — enter ${variant.price} to reset` : 'Edit price'}
+      disabled={saving}
+      onBlur={(e) => commit(e.currentTarget)}
+      onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+      className={`w-[60px] rounded-[7px] border bg-card py-1 text-center text-[13px] outline-none focus:border-brand ${
+        overridden ? 'border-gold/40 font-bold text-gold' : 'border-transparent text-soft'
+      } ${saving ? 'opacity-50' : ''}`}
+    />
+  )
+}
+
+function variantOf(item: MenuItem, id: string): Variant | undefined {
+  return item.variants.find((v) => v.id === id)
+}
+
 export function MenuManager() {
   const [groupId, setGroupId] = useState(MENU_GROUPS[0].id)
   const { map, toggle } = useAdminAvailability()
+  const { overrides, savePrice } = useAdminPrices()
   const group = MENU_GROUPS.find((g) => g.id === groupId) ?? MENU_GROUPS[0]
   const isPizza = groupId === 'pizza'
 
@@ -32,7 +75,9 @@ export function MenuManager() {
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex items-center justify-between border-b border-white/5 px-6 py-4">
         <span className="font-cond text-2xl font-bold text-white">Menu &amp; Prices</span>
-        <span className="text-xs text-mut">Prices are edited in code &amp; redeployed — toggles are live</span>
+        <span className="text-xs text-mut">
+          Edit a price and press Enter — customers see it immediately. Gold = changed from the printed menu.
+        </span>
       </div>
       <div className="no-scrollbar flex gap-2 overflow-x-auto px-6 pt-3.5">
         {MENU_GROUPS.map((g) => (
@@ -81,15 +126,20 @@ export function MenuManager() {
                   </span>
                   {isPizza ? (
                     <>
-                      <PriceCell value={priceFor(item, 'S')} />
+                      <PriceCell item={item} variant={variantOf(item, 'S')} overrides={overrides} savePrice={savePrice} />
                       <span className="mx-1.5">
-                        <PriceCell value={priceFor(item, 'M')} />
+                        <PriceCell item={item} variant={variantOf(item, 'M')} overrides={overrides} savePrice={savePrice} />
                       </span>
-                      <PriceCell value={priceFor(item, 'L')} />
+                      <PriceCell item={item} variant={variantOf(item, 'L')} overrides={overrides} savePrice={savePrice} />
                     </>
                   ) : (
-                    <span className="w-[186px] rounded-[7px] bg-card py-1 text-center text-[13px] text-soft">
-                      {item.variants.map((v) => (v.label ? `${v.label} ${v.price}` : v.price)).join(' · ')}
+                    <span className="flex w-[186px] items-center justify-center gap-1.5">
+                      {item.variants.map((v) => (
+                        <span key={v.id} className="flex flex-col items-center gap-0.5">
+                          {v.label && <span className="text-[9px] text-mut">{v.label}</span>}
+                          <PriceCell item={item} variant={v} overrides={overrides} savePrice={savePrice} />
+                        </span>
+                      ))}
                     </span>
                   )}
                   <span className="flex w-[90px] justify-center">

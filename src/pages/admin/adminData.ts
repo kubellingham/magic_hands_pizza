@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { OrderStatus } from '../../lib/tracking'
+import { loadOverrides, usePriceOverrides, type OverrideMap } from '../../lib/livePrices'
 
 export interface AdminOrderItem {
   item: string
@@ -99,6 +100,30 @@ export function useAdminAvailability() {
   }, [])
 
   return { map, toggle }
+}
+
+/** Price overrides for the menu manager: shared live map + staff save. */
+export function useAdminPrices(): {
+  overrides: OverrideMap
+  savePrice: (itemId: string, variantId: string, price: number, basePrice: number) => Promise<boolean>
+} {
+  const overrides = usePriceOverrides()
+
+  const savePrice = useCallback(
+    async (itemId: string, variantId: string, price: number, basePrice: number) => {
+      if (!supabase) return false
+      // Setting a price back to the printed base removes the override row.
+      const { error } =
+        price === basePrice
+          ? await supabase.from('price_overrides').delete().match({ item_id: itemId, variant_id: variantId })
+          : await supabase.from('price_overrides').upsert({ item_id: itemId, variant_id: variantId, price })
+      await loadOverrides()
+      return !error
+    },
+    [],
+  )
+
+  return { overrides, savePrice }
 }
 
 export function ageLabel(iso: string): string {

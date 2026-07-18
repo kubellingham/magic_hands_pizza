@@ -1,7 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { getMenuItem, minPrice } from '../data/menu'
+import { getMenuItem } from '../data/menu'
 import { RESTAURANT } from '../data/restaurant'
 import { formatINR, isOpenNow } from '../lib/format'
+import { usePriceOverrides, effectiveMinPrice } from '../lib/livePrices'
 import { foodGradient } from '../lib/foodArt'
 import { useAvailability, isAvailable } from '../lib/availability'
 import { VegDot } from '../components/VegDot'
@@ -21,6 +22,7 @@ const CATEGORY_CHIPS = [
 export function Home() {
   const navigate = useNavigate()
   const availability = useAvailability()
+  const overrides = usePriceOverrides()
   const open = isOpenNow()
   const trending = TRENDING_IDS.map((id) => getMenuItem(id)).filter(
     (i): i is NonNullable<typeof i> => !!i && isAvailable(availability, i.id),
@@ -131,7 +133,9 @@ export function Home() {
               <div className="text-[13px] font-bold">{item.name.replace(/ Pizza$/, '')}</div>
               <div className="mt-0.5 truncate text-[10px] text-mut">{item.description ?? ''}</div>
               <div className="mt-2 flex items-center justify-between">
-                <span className="font-cond text-[17px] font-bold text-gold">{formatINR(minPrice(item))}</span>
+                <span className="font-cond text-[17px] font-bold text-gold">
+                  {formatINR(effectiveMinPrice(overrides, item))}
+                </span>
                 <span className="flex h-7 w-7 items-center justify-center rounded-[9px] bg-brand text-lg text-white">
                   +
                 </span>

@@ -1,6 +1,7 @@
 import type { CartLine } from './cartReducer'
 import { getMenuItem } from '../data/menu'
 import { addOnPrice, PIZZA_ADD_ONS } from '../data/addons'
+import { effectivePrice, type OverrideMap } from '../lib/livePrices'
 
 export interface PricedLine extends CartLine {
   name: string
@@ -16,7 +17,7 @@ export interface PricedLine extends CartLine {
  * so a deployed price change can't leave stale prices in a saved cart.
  * Lines whose item/variant no longer exists in the menu are dropped.
  */
-export function priceLines(lines: CartLine[]): PricedLine[] {
+export function priceLines(lines: CartLine[], overrides: OverrideMap = {}): PricedLine[] {
   const priced: PricedLine[] = []
   for (const line of lines) {
     const item = getMenuItem(line.itemId)
@@ -24,7 +25,7 @@ export function priceLines(lines: CartLine[]): PricedLine[] {
     const variant = item.variants.find((v) => v.id === line.variantId)
     if (!variant) continue
     const addOnsTotal = line.addOnIds.reduce((sum, id) => sum + addOnPrice(id, variant.id), 0)
-    const unitPrice = variant.price + addOnsTotal
+    const unitPrice = effectivePrice(overrides, item.id, variant) + addOnsTotal
     priced.push({
       ...line,
       name: item.name,

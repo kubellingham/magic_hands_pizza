@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react'
 import { cartReducer, type CartAction, type CartLine, type CartState } from './cartReducer'
 import { computeBill, itemCount, priceLines, type Bill, type PricedLine } from './selectors'
+import { usePriceOverrides } from '../lib/livePrices'
 
 const STORAGE_KEY = 'mhp-cart-v1'
 
@@ -28,6 +29,7 @@ function loadInitial(): CartState {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, undefined, loadInitial)
+  const overrides = usePriceOverrides()
 
   useEffect(() => {
     try {
@@ -38,7 +40,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [state])
 
   const value = useMemo<CartValue>(() => {
-    const priced = priceLines(state.lines)
+    const priced = priceLines(state.lines, overrides)
     return {
       lines: state.lines,
       priced,
@@ -46,7 +48,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       count: itemCount(state.lines),
       dispatch,
     }
-  }, [state])
+  }, [state, overrides])
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
