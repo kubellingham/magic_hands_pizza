@@ -4,11 +4,11 @@ import { getMenuItem } from '../data/menu'
 import { PIZZA_ADD_ONS, addOnPrice, type AddOnId } from '../data/addons'
 import { useCart } from '../cart/CartContext'
 import { formatINR } from '../lib/format'
-import { foodGradient } from '../lib/foodArt'
 import { useAvailability, isAvailable } from '../lib/availability'
 import { usePriceOverrides, effectivePrice } from '../lib/livePrices'
 import { VegDot } from '../components/VegDot'
 import { QtyStepper } from '../components/QtyStepper'
+import { ItemImage } from '../components/ItemImage'
 
 function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
   return (
@@ -62,12 +62,13 @@ export function ItemDetail() {
 
   const addToCart = () => {
     dispatch({ type: 'add', itemId: item.id, variantId: variant.id, addOnIds, qty })
-    navigate('/cart')
+    // back to the menu so ordering can continue — the floating bar shows the cart
+    navigate(-1)
   }
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface">
-      <div className="relative h-[200px] shrink-0" style={{ background: foodGradient(item.id, item.category) }}>
+      <ItemImage itemId={item.id} category={item.category} className="h-[200px] shrink-0">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -77,7 +78,7 @@ export function ItemDetail() {
           ‹
         </button>
         <VegDot isVeg={variant.isVeg ?? item.isVeg} className="absolute bottom-3 left-4" />
-      </div>
+      </ItemImage>
 
       <div className="px-5 pt-4 pb-2">
         <h1 className="font-cond text-2xl leading-[1.05] font-bold">{item.name}</h1>

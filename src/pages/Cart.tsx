@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../cart/CartContext'
 import { formatINR } from '../lib/format'
-import { foodGradient } from '../lib/foodArt'
-import { loadProfile, isProfileComplete } from '../lib/profile'
+import { loadProfile, isProfileComplete, currentAddress, type Profile } from '../lib/profile'
 import { generateOrderCode, placeOrder } from '../lib/orders'
+import { saveLastOrder } from '../lib/lastOrder'
 import { useOnline } from '../components/OfflineBanner'
 import { QtyStepper } from '../components/QtyStepper'
 import { VegDot } from '../components/VegDot'
+import { ItemImage } from '../components/ItemImage'
+import { AddressSheet } from '../components/AddressSheet'
 
 type Fulfilment = 'delivery' | 'pickup'
 type Payment = 'upi' | 'cod'
@@ -18,9 +20,12 @@ export function Cart() {
   const online = useOnline()
   const [fulfilment, setFulfilment] = useState<Fulfilment>('delivery')
   const [payment, setPayment] = useState<Payment>('upi')
+  const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const profile = loadProfile()
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [profile, setProfile] = useState<Profile>(loadProfile)
   const profileReady = isProfileComplete(profile)
+  const address = currentAddress(profile)
 
   if (priced.length === 0) {
     return (
@@ -35,36 +40,28 @@ export function Cart() {
   }
 
   const submit = async () => {
-    if (fulfilment === 'delivery' && !profileReady) {
-      navigate('/details')
-      return
-    }
-    if (!profileReady && (profile.name.trim().length < 2 || profile.phone.length !== 10)) {
+    const needsAddress = fulfilment === 'delivery'
+    if ((needsAddress && !profileReady) || profile.name.trim().length < 2 || profile.phone.length !== 10) {
       navigate('/details')
       return
     }
     setSubmitting(true)
-    // Open the window synchronously inside the click gesture — a window.open
-    // after the awaited insert would be popup-blocked. We point it at
-    // WhatsApp once the order is saved.
-    const waWindow = window.open('about:blank', '_blank')
     try {
       const result = await placeOrder({
         orderCode: generateOrderCode(),
         customerName: profile.name.trim(),
         phone: profile.phone,
-        address: profile.address.trim(),
-        notes: '',
+        address: address.trim(),
+        notes,
         fulfilment,
         payment,
         priced,
         bill,
       })
-      if (waWindow && !waWindow.closed) {
-        waWindow.location.replace(result.waLink)
-      }
-      // If the popup was blocked, OrderPlaced shows a manual "tap here" link.
+      saveLastOrder(result.orderCode)
       dispatch({ type: 'clear' })
+      // The confirmation screen counts down before opening WhatsApp,
+      // so the customer sees what's about to happen.
       navigate('/order-placed', { state: result })
     } finally {
       setSubmitting(false)
@@ -108,7 +105,7 @@ export function Cart() {
         <div className="px-5 pb-2">
           <button
             type="button"
-            onClick={() => navigate('/details')}
+            onClick={() => (address ? setSheetOpen(true) : navigate('/details'))}
             className="flex w-full items-start gap-2.5 rounded-xl bg-card p-3 text-left"
           >
             <span className="text-base text-brand">📍</span>
@@ -117,10 +114,10 @@ export function Cart() {
                 {profileReady ? profile.name : 'Add delivery details'}
               </span>
               <span className="mt-0.5 block truncate text-[11px] text-mut">
-                {profileReady ? profile.address : 'Name, phone & address needed to deliver'}
+                {address || 'Name, phone & address needed to deliver'}
               </span>
             </span>
-            <span className="text-[11px] font-bold text-brand">{profileReady ? 'Change' : 'Add'}</span>
+            <span className="text-[11px] font-bold text-brand">{address ? 'Change' : 'Add'}</span>
           </button>
         </div>
       )}
@@ -129,12 +126,9 @@ export function Cart() {
       <div className="flex flex-col gap-3.5 px-5 pt-0.5 pb-1">
         {priced.map((line) => (
           <div key={line.key} className="flex items-center gap-3">
-            <div
-              className="relative h-[46px] w-[46px] shrink-0 rounded-xl"
-              style={{ background: foodGradient(line.itemId) }}
-            >
+            <ItemImage itemId={line.itemId} className="h-[46px] w-[46px] shrink-0 rounded-xl">
               <VegDot isVeg={line.isVeg} className="absolute top-1 left-1 scale-75" />
-            </div>
+            </ItemImage>
             <div className="min-w-0 flex-1">
               <div className="truncate text-[13px] font-bold">
                 {line.name}
@@ -189,6 +183,17 @@ export function Cart() {
           </div>
         </div>
       )}
+
+      {/* Notes for the kitchen */}
+      <div className="px-5 pt-1 pb-1.5">
+        <textarea
+          rows={2}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Notes for the kitchen (less spicy, no onions…) — optional"
+          className="w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-xs text-white outline-none placeholder:text-mut focus:border-brand"
+        />
+      </div>
 
       {/* Bill */}
       <div className="flex flex-col gap-1.5 px-5 pb-1.5 text-xs text-soft">
@@ -246,6 +251,8 @@ export function Cart() {
           {!online ? 'Offline — connect to order' : submitting ? 'Placing…' : 'Place Order ›'}
         </button>
       </div>
+
+      {sheetOpen && <AddressSheet onClose={() => setSheetOpen(false)} onChanged={setProfile} />}
     </div>
   )
 }

@@ -32,13 +32,22 @@ Two sides in one app:
 1. Customer picks items (S/M/L pizzas, veg/non-veg variants, Cheese Burst /
    Extra Cheese add-ons), chooses Delivery or Pickup and UPI or Cash.
 2. Delivery details come from an on-device profile (no OTP/SMS — saved in
-   `localStorage`, pre-filled every order).
-3. `placeOrder()` (`src/lib/orders.ts`) saves the order to Supabase, then opens
-   WhatsApp with the full order pre-typed — the customer just presses **Send**.
-   **If the database is unreachable, the WhatsApp message still goes out** —
-   WhatsApp is the fulfillment channel; the database powers the admin board and tracking.
+   `localStorage`, pre-filled every order). Customers can save up to five
+   addresses and switch them from the "Deliver to" picker on Home or in the cart.
+3. `placeOrder()` (`src/lib/orders.ts`) saves the order to Supabase; the
+   confirmation screen then explains what happens next and counts down 5
+   seconds before opening WhatsApp with the full order pre-typed — the
+   customer just presses **Send**. (A manual "Open WhatsApp now" button is
+   always there too.) **If the database is unreachable, the WhatsApp message
+   still goes out** — WhatsApp is the fulfillment channel; the database powers
+   the admin board and tracking.
 4. The confirmation screen links to `/track/<code>`, which polls order status
-   (no PII — see security below) as the kitchen moves it along.
+   (no PII — see security below) as the kitchen moves it along. While an
+   order is in flight, Home shows a floating status strip linking to tracking.
+5. Photos: drop images into `public/images/` (see the README there) — menu
+   item photos, the brand logo, and a UPI QR that appears on the
+   order-confirmation screen for UPI orders. Everything falls back to
+   placeholder art until the photos exist.
 
 ### Offers (auto-applied in the cart)
 
@@ -110,6 +119,8 @@ Hours, phone, address, and offer copy: `src/data/restaurant.ts`.
 - **Live Orders**: Accept/Reject new orders, then Mark Ready → Hand to rider →
   Delivered. Each step updates the customer's tracking page within ~12 s.
 - **Kitchen Display**: big-type tickets for new + preparing orders.
+- **Home Screen**: edit the special hero card (badge + headline, with live
+  preview) and pick the three Trending Now items customers see on Home.
 - **Menu & Prices**: live price editing + availability toggles (see "Updating the menu").
 - **Sales**: last-24h orders, revenue, average order, busiest hours, top items,
   UPI/cash split.

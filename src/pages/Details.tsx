@@ -1,27 +1,47 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { loadProfile, saveProfile } from '../lib/profile'
+import { loadProfile, saveProfile, MAX_ADDRESSES, type Profile } from '../lib/profile'
 import { isValidIndianMobile } from '../lib/format'
 import { RESTAURANT } from '../data/restaurant'
 import { Logo } from '../components/Logo'
 
 /**
- * Replaces the prototype's OTP login: same visual language, but details are
- * saved on-device and pre-fill checkout — no SMS provider needed.
+ * Profile: name, phone, and up to 5 saved delivery addresses (all stored
+ * on-device only). Doubles as the first-run details form during checkout.
  */
 export function Details() {
   const navigate = useNavigate()
-  const initial = loadProfile()
-  const [name, setName] = useState(initial.name)
-  const [phone, setPhone] = useState(initial.phone)
-  const [address, setAddress] = useState(initial.address)
+  const [profile, setProfile] = useState<Profile>(loadProfile)
+  const [draft, setDraft] = useState('')
   const [error, setError] = useState('')
 
+  const setField = (patch: Partial<Profile>) => setProfile((p) => ({ ...p, ...patch }))
+
+  const addAddress = () => {
+    const text = draft.trim()
+    if (text.length < 5) return setError('Please enter the full address (hostel/PG, room, landmark).')
+    if (profile.addresses.length >= MAX_ADDRESSES) return setError(`You can save up to ${MAX_ADDRESSES} addresses.`)
+    setField({ addresses: [...profile.addresses, text], selected: profile.addresses.length })
+    setDraft('')
+    setError('')
+  }
+
+  const removeAddress = (i: number) => {
+    const addresses = profile.addresses.filter((_, idx) => idx !== i)
+    const selected = Math.min(profile.selected > i ? profile.selected - 1 : profile.selected, Math.max(0, addresses.length - 1))
+    setField({ addresses, selected })
+  }
+
   const save = () => {
-    if (name.trim().length < 2) return setError('Please enter your name.')
-    if (!isValidIndianMobile(phone)) return setError('Please enter a valid 10-digit mobile number.')
-    if (address.trim().length < 5) return setError('Please enter your full address (hostel/PG, room, landmark).')
-    saveProfile({ name: name.trim(), phone, address: address.trim() })
+    if (profile.name.trim().length < 2) return setError('Please enter your name.')
+    if (!isValidIndianMobile(profile.phone)) return setError('Please enter a valid 10-digit mobile number.')
+    const pendingDraft = draft.trim()
+    let final = profile
+    if (profile.addresses.length === 0 && pendingDraft.length >= 5) {
+      final = { ...profile, addresses: [pendingDraft], selected: 0 }
+    }
+    if (final.addresses.length === 0) return setError('Please add at least one delivery address.')
+    saveProfile({ ...final, name: final.name.trim() })
     navigate(-1)
   }
 
@@ -31,7 +51,7 @@ export function Details() {
   return (
     <div className="flex min-h-dvh flex-col bg-surface">
       <div
-        className="relative flex h-[190px] shrink-0 flex-col items-center justify-center"
+        className="relative flex h-[170px] shrink-0 flex-col items-center justify-center"
         style={{ background: 'linear-gradient(160deg, #3a1512, #141210)' }}
       >
         <button
@@ -43,20 +63,21 @@ export function Details() {
           ‹
         </button>
         <Logo size="lg" />
-        <div className="mt-3 text-xs text-mut">
-          Meheru, LPU Low Gate · {RESTAURANT.hoursDisplay}
-        </div>
+        <div className="mt-2 text-xs text-mut">Meheru, LPU Low Gate · {RESTAURANT.hoursDisplay}</div>
       </div>
 
-      <div className="px-6 pt-6">
-        <h1 className="font-cond text-2xl leading-[1.05] font-bold">Let&rsquo;s get you fed</h1>
-        <p className="mt-1.5 text-xs text-mut">
-          Saved on your phone only — used to fill your order details.
-        </p>
+      <div className="px-6 pt-5">
+        <h1 className="font-cond text-2xl leading-[1.05] font-bold">Your details</h1>
+        <p className="mt-1.5 text-xs text-mut">Saved on your phone only — used to fill your orders.</p>
       </div>
 
       <div className="flex flex-col gap-3 px-6 pt-4">
-        <input className={inputClass} placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
+        <input
+          className={inputClass}
+          placeholder="Your name"
+          value={profile.name}
+          onChange={(e) => setField({ name: e.target.value })}
+        />
         <div className="flex items-center gap-2.5 rounded-xl border border-line bg-card px-4 py-3.5">
           <span className="text-[15px] font-bold text-soft">+91</span>
           <span className="h-5 w-px bg-line" />
@@ -65,17 +86,62 @@ export function Details() {
             placeholder="Mobile number"
             inputMode="tel"
             maxLength={10}
-            value={phone}
-            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+            value={profile.phone}
+            onChange={(e) => setField({ phone: e.target.value.replace(/\D/g, '') })}
           />
         </div>
-        <textarea
-          className={inputClass}
-          placeholder="Delivery address (hostel/PG, room, landmark…)"
-          rows={3}
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-        />
+
+        <div className="mt-1 text-[11px] font-bold tracking-wide text-mut">
+          SAVED ADDRESSES ({profile.addresses.length}/{MAX_ADDRESSES})
+        </div>
+        {profile.addresses.map((address, i) => (
+          <div
+            key={`${i}-${address.slice(0, 12)}`}
+            className={`flex items-start gap-3 rounded-xl border p-3 ${
+              i === profile.selected ? 'border-brand bg-brand/10' : 'border-line bg-card'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => setField({ selected: i })}
+              className="flex flex-1 items-start gap-2.5 text-left"
+            >
+              <span className="mt-0.5 text-brand">📍</span>
+              <span className="flex-1 text-[13px] leading-snug">
+                {address}
+                {i === profile.selected && <span className="ml-1.5 text-[11px] font-bold text-brand">· current</span>}
+              </span>
+            </button>
+            <button
+              type="button"
+              aria-label={`Remove address ${i + 1}`}
+              onClick={() => removeAddress(i)}
+              className="text-xs font-bold text-mut hover:text-brand"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+        {profile.addresses.length < MAX_ADDRESSES && (
+          <div>
+            <textarea
+              className={inputClass}
+              placeholder={
+                profile.addresses.length === 0
+                  ? 'Delivery address (hostel/PG, room, landmark…)'
+                  : 'Add another address…'
+              }
+              rows={2}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+            />
+            {draft.trim().length >= 5 && (
+              <button type="button" onClick={addAddress} className="mt-2 text-xs font-bold text-brand">
+                + Save this address
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {error && <p className="px-6 pt-3 text-xs font-semibold text-brand">{error}</p>}

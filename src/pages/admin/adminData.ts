@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { OrderStatus } from '../../lib/tracking'
 import { loadOverrides, usePriceOverrides, type OverrideMap } from '../../lib/livePrices'
+import { loadHomeContent, useHomeContent, type HomeContent } from '../../lib/homeContent'
 
 export interface AdminOrderItem {
   item: string
@@ -124,6 +125,35 @@ export function useAdminPrices(): {
   )
 
   return { overrides, savePrice }
+}
+
+/** Home-screen content (special card + trending picks) with staff save. */
+export function useAdminHomeContent(): {
+  content: HomeContent
+  saveSpecial: (badge: string, title: string) => Promise<boolean>
+  saveTrending: (items: string[]) => Promise<boolean>
+} {
+  const content = useHomeContent()
+
+  const saveSpecial = useCallback(async (badge: string, title: string) => {
+    if (!supabase) return false
+    const { error } = await supabase
+      .from('home_content')
+      .upsert({ key: 'special', value: { badge: badge.trim(), title: title.trim() } })
+    await loadHomeContent()
+    return !error
+  }, [])
+
+  const saveTrending = useCallback(async (items: string[]) => {
+    if (!supabase) return false
+    const { error } = await supabase
+      .from('home_content')
+      .upsert({ key: 'trending', value: { items: items.slice(0, 3) } })
+    await loadHomeContent()
+    return !error
+  }, [])
+
+  return { content, saveSpecial, saveTrending }
 }
 
 /** Staff list management — RLS restricts every call to admins. */

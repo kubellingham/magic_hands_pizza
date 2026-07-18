@@ -7,8 +7,9 @@ import { Kitchen } from './Kitchen'
 import { MenuManager } from './MenuManager'
 import { Sales } from './Sales'
 import { Staff } from './Staff'
+import { HomeScreen } from './HomeScreen'
 
-type View = 'live' | 'kitchen' | 'menu' | 'sales' | 'staff'
+type View = 'live' | 'kitchen' | 'menu' | 'home' | 'sales' | 'staff'
 type AuthState = 'checking' | 'signed-out' | 'not-staff' | 'staff'
 
 function Login({ onSignedIn }: { onSignedIn: () => void }) {
@@ -104,6 +105,7 @@ const NAV: Array<{ view: View; label: string; icon: string }> = [
   { view: 'live', label: 'Live Orders', icon: '📱' },
   { view: 'kitchen', label: 'Kitchen Display', icon: '🍳' },
   { view: 'menu', label: 'Menu & Prices', icon: '📝' },
+  { view: 'home', label: 'Home Screen', icon: '🏠' },
   { view: 'sales', label: 'Sales', icon: '📊' },
   { view: 'staff', label: 'Staff', icon: '👥' },
 ]
@@ -167,6 +169,7 @@ function Dashboard({ onSignOut, currentEmail }: { onSignOut: () => void; current
         )}
         {view === 'kitchen' && <Kitchen orders={orders} setStatus={setStatus} />}
         {view === 'menu' && <MenuManager />}
+        {view === 'home' && <HomeScreen />}
         {view === 'sales' && <Sales orders={orders} />}
         {view === 'staff' && <Staff currentEmail={currentEmail} />}
       </main>
