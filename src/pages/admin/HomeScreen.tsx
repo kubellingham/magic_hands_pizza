@@ -1,5 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MENU } from '../../data/menu'
+import {
+  removeItemPhoto,
+  uploadItemPhoto,
+  useMenuPhotos,
+  UPI_QR_KEY,
+} from '../../lib/menuPhotos'
 import { useAdminHomeContent } from './adminData'
 
 /**
@@ -8,10 +14,14 @@ import { useAdminHomeContent } from './adminData'
  */
 export function HomeScreen() {
   const { content, saveSpecial, saveTrending } = useAdminHomeContent()
+  const photos = useMenuPhotos()
   const [badge, setBadge] = useState(content.special.badge)
   const [title, setTitle] = useState(content.special.title)
   const [picks, setPicks] = useState<string[]>(content.trending)
   const [status, setStatus] = useState('')
+  const [qrBusy, setQrBusy] = useState(false)
+  const qrInput = useRef<HTMLInputElement>(null)
+  const qrUrl = photos[UPI_QR_KEY]
 
   // sync form when the store finishes loading
   useEffect(() => {
@@ -116,6 +126,64 @@ export function HomeScreen() {
         <p className="mt-3 text-[11px] text-mut">
           Changes go live for customers on their next visit — no redeploy needed.
         </p>
+
+        <h2 className="mt-8 text-[10px] font-extrabold tracking-[1px] text-mut">
+          UPI QR — SHOWN TO CUSTOMERS WHO CHOOSE UPI
+        </h2>
+        <div className="mt-2.5 flex items-start gap-4">
+          <div className="flex h-[120px] w-[120px] shrink-0 items-center justify-center rounded-2xl border border-line bg-white">
+            {qrUrl ? (
+              <img src={qrUrl} alt="Current UPI QR" className="max-h-[108px] max-w-[108px]" />
+            ) : (
+              <span className="px-2 text-center text-[10px] font-semibold text-[#8c7a5e]">No QR yet</span>
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <input
+              ref={qrInput}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              aria-label="UPI QR image"
+              onChange={async (e) => {
+                const file = e.target.files?.[0]
+                e.target.value = ''
+                if (!file) return
+                setQrBusy(true)
+                const message = await uploadItemPhoto(UPI_QR_KEY, file)
+                setQrBusy(false)
+                flash(message ? `⚠ ${message}` : '✓ UPI QR saved')
+              }}
+            />
+            <button
+              type="button"
+              disabled={qrBusy}
+              onClick={() => qrInput.current?.click()}
+              className="rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+            >
+              {qrBusy ? 'Uploading…' : qrUrl ? 'Replace QR' : 'Upload QR'}
+            </button>
+            {qrUrl && (
+              <button
+                type="button"
+                disabled={qrBusy}
+                onClick={async () => {
+                  setQrBusy(true)
+                  const message = await removeItemPhoto(UPI_QR_KEY)
+                  setQrBusy(false)
+                  flash(message ? `⚠ ${message}` : '✓ UPI QR removed')
+                }}
+                className="rounded-xl border border-line bg-card px-5 py-2.5 text-sm font-bold text-mut"
+              >
+                Remove
+              </button>
+            )}
+            <p className="max-w-[260px] text-[11px] leading-relaxed text-mut">
+              A screenshot of the shop's QR from any UPI app works. Check it scans afterwards — this is
+              what customers pay against.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )

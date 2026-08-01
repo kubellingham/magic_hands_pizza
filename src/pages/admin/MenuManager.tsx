@@ -1,10 +1,78 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { itemsInCategory } from '../../data/menu'
 import { MENU_GROUPS, CATEGORY_TITLES } from '../../data/groups'
 import type { MenuItem, Variant } from '../../data/types'
 import { VegDot } from '../../components/VegDot'
+import { ItemImage } from '../../components/ItemImage'
 import { effectivePrice, type OverrideMap } from '../../lib/livePrices'
+import { removeItemPhoto, uploadItemPhoto, useMenuPhotos } from '../../lib/menuPhotos'
 import { useAdminAvailability, useAdminPrices, soldTonight, type AdminOrder } from './adminData'
+
+/**
+ * Tap the thumbnail to put a photo on an item — camera or gallery, shrunk on
+ * the phone before it uploads, live for customers straight away.
+ */
+function PhotoCell({ item, onError }: { item: MenuItem; onError: (message: string) => void }) {
+  const photos = useMenuPhotos()
+  const [busy, setBusy] = useState(false)
+  const input = useRef<HTMLInputElement>(null)
+  const hasPhoto = Boolean(photos[item.id])
+
+  const choose = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setBusy(true)
+    onError(await uploadItemPhoto(item.id, file))
+    setBusy(false)
+  }
+
+  const clear = async () => {
+    setBusy(true)
+    onError(await removeItemPhoto(item.id))
+    setBusy(false)
+  }
+
+  return (
+    <span className="relative shrink-0">
+      <input
+        ref={input}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={choose}
+        aria-label={`Photo for ${item.name}`}
+      />
+      <button
+        type="button"
+        onClick={() => input.current?.click()}
+        disabled={busy}
+        title={hasPhoto ? 'Replace this photo' : 'Add a photo'}
+        className={`block h-11 w-11 overflow-hidden rounded-xl border ${
+          hasPhoto ? 'border-line' : 'border-dashed border-mut/50'
+        } ${busy ? 'opacity-50' : ''}`}
+      >
+        <ItemImage itemId={item.id} category={item.category} className="h-full w-full">
+          {!hasPhoto && (
+            <span className="absolute inset-0 flex items-center justify-center bg-black/45 text-[15px]">
+              {busy ? '⏳' : '＋'}
+            </span>
+          )}
+        </ItemImage>
+      </button>
+      {hasPhoto && !busy && (
+        <button
+          type="button"
+          onClick={clear}
+          aria-label={`Remove photo for ${item.name}`}
+          className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-line bg-card text-[10px] font-bold text-mut"
+        >
+          ✕
+        </button>
+      )}
+    </span>
+  )
+}
 
 interface PriceCellProps {
   item: MenuItem
@@ -61,8 +129,10 @@ function variantOf(item: MenuItem, id: string): Variant | undefined {
 
 export function MenuManager({ orders }: { orders: AdminOrder[] }) {
   const [groupId, setGroupId] = useState(MENU_GROUPS[0].id)
+  const [photoError, setPhotoError] = useState('')
   const { map, toggle } = useAdminAvailability()
   const { overrides, savePrice } = useAdminPrices()
+  const photos = useMenuPhotos()
   const group = MENU_GROUPS.find((g) => g.id === groupId) ?? MENU_GROUPS[0]
   const isPizza = groupId === 'pizza'
   const sold = soldTonight(orders)
@@ -77,14 +147,21 @@ export function MenuManager({ orders }: { orders: AdminOrder[] }) {
       <div className="flex items-center justify-between border-b border-line px-4 py-3 lg:px-6 lg:py-4">
         <h1 className="font-display text-[19px] font-extrabold lg:text-[22px]">Menu &amp; stock</h1>
         <span className="text-xs font-bold text-mut">
-          {liveCount}/{totalCount} live
+          {liveCount}/{totalCount} live · {Object.keys(photos).length} photos
         </span>
       </div>
 
       <div className="mx-4 mt-4 rounded-2xl lg:mx-6 border border-accent/30 bg-accent/8 px-4 py-3 text-[12px] leading-relaxed text-soft">
-        Anything you switch off shows as <b className="text-accent">"Back tomorrow"</b> in the app — never
-        "out of stock". Prices save the moment you press Enter.
+        Tap a picture to <b className="text-accent">add or change the photo</b> customers see — it goes live
+        straight away. Anything you switch off shows as <b className="text-accent">"Back tomorrow"</b> in the
+        app, never "out of stock". Prices save the moment you press Enter.
       </div>
+
+      {photoError && (
+        <div className="mx-4 mt-3 rounded-xl border border-brand/40 bg-brand/10 px-4 py-2.5 text-[12px] lg:mx-6">
+          {photoError}
+        </div>
+      )}
 
       <div className="no-scrollbar mt-4 flex gap-2 overflow-x-auto px-4 lg:px-6">
         {MENU_GROUPS.map((g) => (
@@ -132,6 +209,7 @@ export function MenuManager({ orders }: { orders: AdminOrder[] }) {
                   }`}
                 >
                   <span className="flex w-full items-center gap-2.5 lg:w-auto lg:flex-1">
+                    <PhotoCell item={item} onError={setPhotoError} />
                     <VegDot isVeg={item.isVeg} />
                     <span>
                       <span className="text-[14px] font-semibold">{item.name.replace(/ Pizza$/, '')}</span>

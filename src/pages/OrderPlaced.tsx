@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { PlaceOrderResult } from '../lib/orders'
 import { isQueued, onOutboxChange } from '../lib/orderOutbox'
+import { UPI_QR_KEY, useMenuPhotos } from '../lib/menuPhotos'
 import { formatINR } from '../lib/format'
 
 const COUNTDOWN_SECONDS = 5
@@ -11,6 +12,7 @@ export function OrderPlaced() {
   const navigate = useNavigate()
   const [secondsLeft, setSecondsLeft] = useState(state?.waLink ? COUNTDOWN_SECONDS : 0)
   const [showQr, setShowQr] = useState(true)
+  const photos = useMenuPhotos()
   const [pending, setPending] = useState(() => (state ? !state.savedToDb : false))
   const openedRef = useRef(false)
 
@@ -114,11 +116,11 @@ export function OrderPlaced() {
           </div>
         )}
 
-        {/* UPI QR — appears once public/images/payment/upi-qr.png exists */}
+        {/* UPI QR — uploaded from the admin, or a file in public/images/payment/ */}
         {state?.payment === 'upi' && showQr && (
           <div className="mt-4 rounded-2xl bg-white p-4">
             <img
-              src="/images/payment/upi-qr.png"
+              src={photos[UPI_QR_KEY] ?? '/images/payment/upi-qr.png'}
               alt="UPI payment QR code"
               onError={() => setShowQr(false)}
               className="mx-auto max-h-52 w-auto"
