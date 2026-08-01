@@ -46,20 +46,20 @@ export function Sales({ orders }: Props) {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b border-line px-6 py-4">
-        <span className="font-display text-2xl font-extrabold">Sales · Last 24h</span>
+      <div className="flex items-center justify-between border-b border-line px-4 py-3 lg:px-6 lg:py-4">
+        <span className="font-display text-[19px] font-extrabold lg:text-2xl">Sales · last 24h</span>
         <span className="text-xs text-mut">
           {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
         </span>
       </div>
-      <div className="flex gap-3 px-6 pt-4 pb-2">
+      <div className="grid grid-cols-2 gap-3 px-4 pt-4 pb-2 lg:flex lg:px-6">
         <Stat label="Orders" value={String(active.length)} />
         <Stat label="Revenue" value={formatINR(revenue)} color="text-accent" />
         <Stat label="Avg order" value={active.length ? formatINR(avg) : '—'} />
         <Stat label="Pending" value={String(pending)} sub="in kitchen" color="text-brand" />
       </div>
-      <div className="flex flex-1 gap-3 overflow-hidden px-6 pt-2 pb-5">
-        <div className="flex flex-[1.5] flex-col rounded-xl bg-card p-4">
+      <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 pt-2 pb-6 lg:flex-row lg:overflow-hidden lg:px-6 lg:pb-5">
+        <div className="flex min-h-[220px] flex-[1.5] flex-col rounded-xl bg-card p-4">
           <div className="mb-3.5 text-xs font-bold text-soft">Orders (2-hour buckets, last 24h)</div>
           <div className="flex flex-1 items-end gap-2">
             {buckets.map((count, i) => {

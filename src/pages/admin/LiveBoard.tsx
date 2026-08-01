@@ -63,9 +63,13 @@ function itemLines(order: AdminOrder) {
   ))
 }
 
+type Column = 'new' | 'oven' | 'road'
+
 export function LiveBoard({ orders, setStatus }: Props) {
   const [receiptFor, setReceiptFor] = useState<AdminOrder | null>(null)
   const [now, setNow] = useState(() => Date.now())
+  // Phones show one column at a time; desktop shows all three side by side.
+  const [column, setColumn] = useState<Column>('new')
 
   // one ticking clock drives every card's countdown
   useEffect(() => {
@@ -87,11 +91,37 @@ export function LiveBoard({ orders, setStatus }: Props) {
     }
   }
 
+  const tabs: Array<{ key: Column; label: string; count: number; dot: string }> = [
+    { key: 'new', label: 'New', count: nu.length, dot: 'bg-accent' },
+    { key: 'oven', label: 'In the oven', count: oven.length, dot: 'bg-brand' },
+    { key: 'road', label: 'On the road', count: road.length, dot: 'bg-veg' },
+  ]
+  const show = (key: Column) => (column === key ? 'flex' : 'hidden')
+
   return (
-    <div className="flex flex-1 gap-4 overflow-x-auto p-5">
+    <>
+      {/* Phone column switcher */}
+      <div className="flex gap-2 px-4 pt-3 lg:hidden">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setColumn(tab.key)}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-[12px] font-extrabold ${
+              column === tab.key ? 'bg-card text-ink ring-1 ring-line' : 'text-mut'
+            }`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${tab.dot}`} />
+            {tab.label}
+            <span className={column === tab.key ? 'text-accent' : ''}>{tab.count}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-1 flex-col gap-4 p-4 lg:flex-row lg:overflow-x-auto lg:p-5">
       {/* ── NEW ─────────────────────────────────────────────────────── */}
-      <section className="flex min-w-[290px] flex-1 flex-col gap-3">
-        <header className="flex items-center gap-2">
+      <section className={`${show('new')} lg:flex min-w-0 flex-1 flex-col gap-3 lg:min-w-[290px]`}>
+        <header className="hidden items-center gap-2 lg:flex">
           <span className="h-2 w-2 rounded-full bg-accent" />
           <h2 className="text-[13px] font-extrabold tracking-wide">NEW · {nu.length}</h2>
         </header>
@@ -140,8 +170,8 @@ export function LiveBoard({ orders, setStatus }: Props) {
       </section>
 
       {/* ── IN THE OVEN ─────────────────────────────────────────────── */}
-      <section className="flex min-w-[290px] flex-1 flex-col gap-3">
-        <header className="flex items-center gap-2">
+      <section className={`${show('oven')} lg:flex min-w-0 flex-1 flex-col gap-3 lg:min-w-[290px]`}>
+        <header className="hidden items-center gap-2 lg:flex">
           <span className="h-2 w-2 rounded-full bg-brand" />
           <h2 className="text-[13px] font-extrabold tracking-wide">IN THE OVEN · {oven.length}</h2>
         </header>
@@ -201,8 +231,8 @@ export function LiveBoard({ orders, setStatus }: Props) {
       </section>
 
       {/* ── ON THE ROAD ─────────────────────────────────────────────── */}
-      <section className="flex min-w-[290px] flex-1 flex-col gap-3">
-        <header className="flex items-center gap-2">
+      <section className={`${show('road')} lg:flex min-w-0 flex-1 flex-col gap-3 lg:min-w-[290px]`}>
+        <header className="hidden items-center gap-2 lg:flex">
           <span className="h-2 w-2 rounded-full bg-veg" />
           <h2 className="text-[13px] font-extrabold tracking-wide">ON THE ROAD · {road.length}</h2>
         </header>
@@ -233,6 +263,8 @@ export function LiveBoard({ orders, setStatus }: Props) {
           )}
         </div>
       </section>
+
+      </div>
 
       {/* Receipt hand-off after Delivered */}
       {receiptFor && (
@@ -275,6 +307,6 @@ export function LiveBoard({ orders, setStatus }: Props) {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }

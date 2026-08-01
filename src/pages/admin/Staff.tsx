@@ -23,12 +23,12 @@ export function Staff({ currentEmail }: { currentEmail: string | null }) {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b border-line px-6 py-4">
-        <span className="font-display text-2xl font-extrabold">Staff</span>
+      <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 lg:px-6 lg:py-4">
+        <span className="font-display text-[19px] font-extrabold lg:text-2xl">Staff</span>
         <span className="text-xs text-mut">Everyone listed here has full dashboard access</span>
       </div>
 
-      <div className="max-w-xl px-6 py-5">
+      <div className="max-w-xl px-4 py-5 lg:px-6">
         <form onSubmit={submit} className="flex gap-2.5">
           <input
             type="email"

@@ -43,12 +43,12 @@ export function HomeScreen() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b border-line px-6 py-4">
-        <span className="font-display text-2xl font-extrabold">Home Screen</span>
+      <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 lg:px-6 lg:py-4">
+        <span className="font-display text-[19px] font-extrabold lg:text-2xl">Home Screen</span>
         <span className="text-xs font-semibold text-veg">{status}</span>
       </div>
 
-      <div className="max-w-2xl overflow-y-auto px-6 py-5">
+      <div className="max-w-2xl overflow-y-auto px-4 py-5 lg:px-6">
         <h2 className="text-[11px] font-bold tracking-wide text-mut">TODAY'S SPECIAL CARD</h2>
         <div className="mt-2.5 flex flex-col gap-2.5">
           <input

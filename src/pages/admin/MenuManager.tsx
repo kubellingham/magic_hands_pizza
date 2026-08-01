@@ -74,19 +74,19 @@ export function MenuManager({ orders }: { orders: AdminOrder[] }) {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b border-line px-6 py-4">
-        <h1 className="font-display text-[22px] font-extrabold">Menu &amp; stock</h1>
+      <div className="flex items-center justify-between border-b border-line px-4 py-3 lg:px-6 lg:py-4">
+        <h1 className="font-display text-[19px] font-extrabold lg:text-[22px]">Menu &amp; stock</h1>
         <span className="text-xs font-bold text-mut">
           {liveCount}/{totalCount} live
         </span>
       </div>
 
-      <div className="mx-6 mt-4 rounded-2xl border border-accent/30 bg-accent/8 px-4 py-3 text-[12px] leading-relaxed text-soft">
+      <div className="mx-4 mt-4 rounded-2xl lg:mx-6 border border-accent/30 bg-accent/8 px-4 py-3 text-[12px] leading-relaxed text-soft">
         Anything you switch off shows as <b className="text-accent">"Back tomorrow"</b> in the app — never
         "out of stock". Prices save the moment you press Enter.
       </div>
 
-      <div className="no-scrollbar mt-4 flex gap-2 overflow-x-auto px-6">
+      <div className="no-scrollbar mt-4 flex gap-2 overflow-x-auto px-4 lg:px-6">
         {MENU_GROUPS.map((g) => (
           <button
             key={g.id}
@@ -101,7 +101,7 @@ export function MenuManager({ orders }: { orders: AdminOrder[] }) {
         ))}
       </div>
 
-      <div className="flex px-6 pt-4 pb-1 text-[10px] font-extrabold tracking-wide text-mut">
+      <div className="hidden px-6 pt-4 pb-1 text-[10px] font-extrabold tracking-wide text-mut lg:flex">
         <span className="flex-1">ITEM</span>
         {isPizza ? (
           <>
@@ -115,7 +115,7 @@ export function MenuManager({ orders }: { orders: AdminOrder[] }) {
         <span className="w-[76px] text-center">LIVE</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-6">
+      <div className="flex-1 overflow-y-auto px-4 pb-6 lg:px-6">
         {group.categories.map((cat) => (
           <div key={cat}>
             <div className="font-display pt-4 pb-1 text-base font-extrabold text-brand">
@@ -127,9 +127,11 @@ export function MenuManager({ orders }: { orders: AdminOrder[] }) {
               return (
                 <div
                   key={item.id}
-                  className={`flex items-center border-t border-line py-3 ${live ? '' : 'opacity-55'}`}
+                  className={`flex flex-wrap items-center gap-y-2 border-t border-line py-3 lg:flex-nowrap ${
+                    live ? '' : 'opacity-55'
+                  }`}
                 >
-                  <span className="flex flex-1 items-center gap-2.5">
+                  <span className="flex w-full items-center gap-2.5 lg:w-auto lg:flex-1">
                     <VegDot isVeg={item.isVeg} />
                     <span>
                       <span className="text-[14px] font-semibold">{item.name.replace(/ Pizza$/, '')}</span>
@@ -143,15 +145,16 @@ export function MenuManager({ orders }: { orders: AdminOrder[] }) {
                     </span>
                   </span>
                   {isPizza ? (
-                    <>
-                      <PriceCell item={item} variant={variantOf(item, 'S')} overrides={overrides} savePrice={savePrice} />
-                      <span className="mx-1.5">
-                        <PriceCell item={item} variant={variantOf(item, 'M')} overrides={overrides} savePrice={savePrice} />
-                      </span>
-                      <PriceCell item={item} variant={variantOf(item, 'L')} overrides={overrides} savePrice={savePrice} />
-                    </>
+                    <span className="flex items-center gap-1.5">
+                      {(['S', 'M', 'L'] as const).map((size) => (
+                        <span key={size} className="flex flex-col items-center gap-0.5">
+                          <span className="text-[9px] text-mut lg:hidden">{size}</span>
+                          <PriceCell item={item} variant={variantOf(item, size)} overrides={overrides} savePrice={savePrice} />
+                        </span>
+                      ))}
+                    </span>
                   ) : (
-                    <span className="flex w-[182px] items-center justify-center gap-1.5">
+                    <span className="flex items-center justify-center gap-1.5 lg:w-[182px]">
                       {item.variants.map((v) => (
                         <span key={v.id} className="flex flex-col items-center gap-0.5">
                           {v.label && <span className="text-[9px] text-mut">{v.label}</span>}
@@ -160,7 +163,7 @@ export function MenuManager({ orders }: { orders: AdminOrder[] }) {
                       ))}
                     </span>
                   )}
-                  <span className="flex w-[76px] justify-center">
+                  <span className="ml-auto flex justify-center lg:ml-0 lg:w-[76px]">
                     <button
                       type="button"
                       role="switch"

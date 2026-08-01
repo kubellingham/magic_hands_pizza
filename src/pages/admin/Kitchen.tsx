@@ -21,11 +21,11 @@ export function Kitchen({ orders, setStatus }: Props) {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b border-line px-6 py-4">
-        <span className="font-display text-2xl font-extrabold">Kitchen Display</span>
+      <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 lg:px-6 lg:py-4">
+        <span className="font-display text-[19px] font-extrabold lg:text-2xl">Kitchen Display</span>
         <span className="text-xs text-mut">{tickets.length} active tickets</span>
       </div>
-      <div className="grid flex-1 auto-rows-min grid-cols-1 gap-3.5 overflow-y-auto p-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid flex-1 auto-rows-min grid-cols-1 gap-3.5 overflow-y-auto p-4 md:grid-cols-2 lg:p-5 xl:grid-cols-3">
         {tickets.map((order) => {
           const isNew = order.status === 'new'
           return (
