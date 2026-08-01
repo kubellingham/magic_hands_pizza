@@ -12,6 +12,7 @@ import { OrderPlaced } from './pages/OrderPlaced'
 import { Track } from './pages/Track'
 import { Orders } from './pages/Orders'
 import { About } from './pages/About'
+import { Diag } from './pages/Diag'
 
 const Admin = lazy(() => import('./pages/admin/Admin'))
 
@@ -48,6 +49,7 @@ export default function App() {
                 <Route path="/track/:code" element={<Track />} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/diag" element={<Diag />} />
               </Routes>
             </div>
           }

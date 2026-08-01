@@ -4,6 +4,14 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  // /diag reports these so we can tell which bundle a phone is actually running
+  define: {
+    __BUILD_ID__: JSON.stringify(
+      ((globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env
+        .VERCEL_GIT_COMMIT_SHA ?? 'local').slice(0, 7),
+    ),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     react(),
     tailwindcss(),

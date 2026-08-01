@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { fetchOrderStatus, type TrackedOrder, type OrderStatus } from '../lib/tracking'
 import { loadOrderHistory, type OrderRecord } from '../lib/orderHistory'
+import { isQueued, onOutboxChange } from '../lib/orderOutbox'
 import { RESTAURANT } from '../data/restaurant'
 import { formatINR } from '../lib/format'
 
@@ -36,6 +37,13 @@ export function Track() {
   const [record] = useState<OrderRecord | undefined>(() =>
     loadOrderHistory().find((o) => o.code === code),
   )
+  // True while the order is still parked in the outbox waiting for a connection
+  const [waiting, setWaiting] = useState(() => (code ? isQueued(code) : false))
+
+  useEffect(() => {
+    if (!code) return
+    return onOutboxChange(() => setWaiting(isQueued(code)))
+  }, [code])
 
   useEffect(() => {
     if (!code) return
@@ -107,7 +115,7 @@ export function Track() {
         <p className="mt-1.5 text-[12px] text-mut">
           #{code}
           {order && !cancelled && order.status !== 'delivered' && ' · running on time'}
-          {loaded && !order && ' · the kitchen has your WhatsApp order'}
+          {loaded && !order && (waiting ? ' · still sending — weak signal' : ' · the kitchen has your WhatsApp order')}
         </p>
       </div>
 

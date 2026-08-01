@@ -53,6 +53,16 @@ export function onOutboxChange(fn: () => void): () => void {
   return () => listeners.delete(fn)
 }
 
+/** Everything still waiting — shown on /diag. */
+export function outboxEntries(): Array<{ code: string; attempts: number; lastError: string; queuedAt: number }> {
+  return read().map((e) => ({
+    code: e.row.order_code,
+    attempts: e.attempts,
+    lastError: e.lastError,
+    queuedAt: e.queuedAt,
+  }))
+}
+
 export function isQueued(orderCode: string): boolean {
   return read().some((e) => e.row.order_code === orderCode)
 }
