@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../cart/CartContext'
-import { formatINR } from '../lib/format'
+import { formatINR, isValidIndianMobile } from '../lib/format'
 import { loadProfile, isProfileComplete, currentAddress, type Profile } from '../lib/profile'
 import { generateOrderCode, placeOrder } from '../lib/orders'
 import { saveLastOrder } from '../lib/lastOrder'
@@ -58,7 +58,7 @@ export function Cart() {
 
   const submit = async () => {
     const needsAddress = fulfilment === 'delivery'
-    if ((needsAddress && !profileReady) || profile.name.trim().length < 2 || profile.phone.length !== 10) {
+    if ((needsAddress && !profileReady) || profile.name.trim().length < 2 || !isValidIndianMobile(profile.phone)) {
       navigate('/details')
       return
     }
@@ -240,6 +240,7 @@ export function Cart() {
           <textarea
             autoFocus
             rows={2}
+            maxLength={300}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Less spicy? No onions? Tell the kitchen."

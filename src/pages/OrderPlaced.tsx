@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { PlaceOrderResult } from '../lib/orders'
+import { isQueued, onOutboxChange } from '../lib/orderOutbox'
 import { formatINR } from '../lib/format'
 
 const COUNTDOWN_SECONDS = 5
@@ -10,7 +11,16 @@ export function OrderPlaced() {
   const navigate = useNavigate()
   const [secondsLeft, setSecondsLeft] = useState(state?.waLink ? COUNTDOWN_SECONDS : 0)
   const [showQr, setShowQr] = useState(true)
+  const [pending, setPending] = useState(() => (state ? !state.savedToDb : false))
   const openedRef = useRef(false)
+
+  // The outbox retries in the background — drop the notice once it lands
+  useEffect(() => {
+    if (!state?.orderCode || state.savedToDb) return
+    const sync = () => setPending(isQueued(state.orderCode))
+    sync()
+    return onOutboxChange(sync)
+  }, [state?.orderCode, state?.savedToDb])
 
   const openWhatsApp = () => {
     if (!state?.waLink || openedRef.current) return
@@ -96,6 +106,13 @@ export function OrderPlaced() {
             <span className="font-bold">25–30 min</span>
           </div>
         </div>
+
+        {pending && (
+          <div className="mt-4 rounded-2xl border border-accent/40 bg-accent/8 px-4 py-3 text-[12px] leading-relaxed">
+            <b className="text-accent">Weak signal.</b> Your WhatsApp message is what counts, and it's
+            ready to send. We'll slot this onto the kitchen's screen the moment the connection is back.
+          </div>
+        )}
 
         {/* UPI QR — appears once public/images/payment/upi-qr.png exists */}
         {state?.payment === 'upi' && showQr && (
