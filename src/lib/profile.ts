@@ -61,9 +61,18 @@ export function isProfileComplete(p: Profile): boolean {
   return p.name.trim().length >= 2 && isValidIndianMobile(p.phone) && currentAddress(p).trim().length >= 5
 }
 
-/** Short label for the Deliver-to header, e.g. "Kapoor Castle PG, Meheru". */
+/**
+ * Short label for the Deliver-to header — the most recognisable chunk of the
+ * address (usually the PG/hostel name) rather than a blunt truncation.
+ */
 export function addressLabel(address: string): string {
-  const trimmed = address.trim()
-  if (trimmed.length <= 28) return trimmed
-  return trimmed.slice(0, 28) + '…'
+  const parts = address
+    .split(',')
+    .map((p) => p.trim())
+    .filter(Boolean)
+  if (parts.length === 0) return address.trim()
+  // "Room 214, Kapoor Castle PG, Meheru" → "Kapoor Castle PG"
+  const named = parts.find((p) => /[a-z]/i.test(p) && !/^room\b|^flat\b|^#/i.test(p))
+  const label = named ?? parts[0]
+  return label.length <= 26 ? label : label.slice(0, 26) + '…'
 }

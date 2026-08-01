@@ -1,26 +1,45 @@
 # Magic Hand's Pizza — Ordering PWA 🍕
 
+*The light that's still on.*
+
 An installable, offline-capable Progressive Web App for **Magic Hand's Pizza**
-(Opp. Green Valley, near Kapoor Castle PG, Vill. Meheru, LPU — open 11 AM to 4 AM),
-implementing the dark-theme design from the Claude Design prototype
-(`Magic Hands Prototype.dc.html`).
+(Opp. Green Valley, near Kapoor Castle PG, Vill. Meheru, LPU — open 11 AM to 4 AM).
+
+## One brand, two shifts
+
+The app wears two skins with **identical layouts and type** — only the tokens
+and copy flip, so it reads as a ritual rather than a redesign:
+
+| | Day shift (11 AM–7 PM) | Night shift (7 PM–4 AM) |
+|---|---|---|
+| Palette | Corner counter — cream, ink, green freshness | Midnight oven — warm black, amber glow |
+| Greeting | "Lunch plans? Already in the oven." | "Still awake? Good. So is the oven." |
+| Rail | "Lunch favourites" | "Most ordered after midnight" |
+
+`src/lib/shift.ts` decides the shift and stamps `data-shift` on `<html>`;
+`src/index.css` holds both token sets. It re-checks every minute, so a phone
+left open through 7 PM flips without a reload. The kitchen dashboard is pinned
+to the night skin (`.shift-night`) — it lives on a screen in a dark kitchen.
+
+Type: **Bricolage Grotesque** (headlines) + **Instrument Sans** (UI), one red
+`#E6332A`, one amber `#FFB524`.
 
 Two sides in one app:
 
 - **Customer app** (mobile) — browse the full menu, build a cart with sizes and
   add-ons, place an order that is saved to the database **and** delivered to the
   owner's WhatsApp (96469-52001) as a pre-filled itemized message, then track it live.
-- **Admin dashboard** (`/admin`, desktop) — staff log in to a live orders board
-  (New → Preparing → Ready → Out → Delivered), a kitchen display, menu
-  availability toggles, and simple sales stats. Status changes flow straight
-  back into the customer's tracking screen.
+- **Kitchen dashboard** (`/admin`, desktop/tablet) — staff log in to a
+  night-kitchen orders board (New → In the oven → On the road), a kitchen
+  screen, menu & stock, home-screen controls, day report and staff admin.
+  Status changes flow straight back into the customer's tracker.
 
 ## Tech stack
 
 | Layer | Choice |
 |---|---|
 | Frontend | React 18 + TypeScript + Vite |
-| Styling | Tailwind CSS v4 with prototype design tokens (Anton, Barlow Condensed, Plus Jakarta Sans) |
+| Styling | Tailwind CSS v4, two-shift token system (Bricolage Grotesque + Instrument Sans) |
 | PWA | vite-plugin-pwa (Workbox) — installable, offline menu, cached Google Fonts |
 | State | React Context + `useReducer`, persisted to `localStorage` |
 | Backend | Supabase — Postgres + RLS + Auth (staff), no server code |
@@ -53,7 +72,7 @@ Two sides in one app:
    WhatsApp to the customer's number with the receipt message — staff attach
    the PDF and send. (wa.me links can't attach files automatically, so the
    attach step is the one manual action.)
-5. Photos: drop images into `public/images/` (see the README there) — menu
+7. Photos: drop images into `public/images/` (see the README there) — menu
    item photos, the brand logo, and a UPI QR that appears on the
    order-confirmation screen for UPI orders. Everything falls back to
    placeholder art until the photos exist.
@@ -64,6 +83,8 @@ Two sides in one app:
 - **Order ≥ ₹999 → 10% off** — shown in the bill breakdown.
 - **Tuesday: 2 large → 1 small pizza free** — needs a pizza choice, so it rides
   along as a note in the WhatsApp message for the owner to fulfil.
+- **One step away?** the cart nudges instead of staying silent — e.g. "Almost
+  there: add 1 more large pizza → a small one rides free".
 
 ## Security model
 
@@ -104,12 +125,12 @@ offline-cached. Add items with a **new unique `id`** using the `sml()` / `ml()` 
 `vegNonveg()` / `std()` helpers, then commit → push → Vercel redeploys.
 
 Day-to-day changes need **no redeploy** — both live in the admin's
-**Menu & Prices** view:
+**Menu & stock** view:
 
-- **Availability** ("out of stock") toggles.
+- **Availability** toggles — switched-off items read "Back tomorrow" in the app.
 - **Prices**: edit any price cell and press Enter — customers see it
   immediately (menu, item page, cart, WhatsApp message, order record). Edited
-  prices show in gold; entering the printed base price resets the override.
+  prices show in amber; entering the printed base price resets the override.
   Overrides live in the `price_overrides` table on top of the code menu, so
   offline customers fall back to the printed base prices.
 
@@ -125,14 +146,28 @@ Hours, phone, address, and offer copy: `src/data/restaurant.ts`.
   staff member except themselves — no accidental lock-outs.
   Note: Supabase's built-in email service is rate-limited on the free tier
   (a few confirmation emails per hour), which is plenty for occasional staff changes.
-- **Live Orders**: Accept/Reject new orders, then Mark Ready → Hand to rider →
-  Delivered. Each step updates the customer's tracking page within ~12 s.
-- **Kitchen Display**: big-type tickets for new + preparing orders.
-- **Home Screen**: edit the special hero card (badge + headline, with live
-  preview) and pick the three Trending Now items customers see on Home.
-- **Menu & Prices**: live price editing + availability toggles (see "Updating the menu").
+- **Orders**: a three-column night-kitchen board built for one pair of floury
+  hands — one big action per card: **Fire it 🔥 → Mark boxed → Boxed → hand to
+  rider → Delivered ✓**. Countdown chips keep the 25–30 min promise honest
+  (they turn red when an order runs over), and **⏸ Pause new orders** is the
+  3:50 AM safety valve: customers keep their cart but can't check out until
+  you resume. Each step reaches the customer's tracker within ~5 s.
+- **Kitchen screen**: big-type tickets for new + preparing orders.
+- **App home**: edit the special hero card (badge + headline, with a live
+  preview of the real card) and pick the three items on the home rail — those
+  same picks get the **BESTSELLER** badge on the menu.
+- **Menu & stock**: live price editing, per-item "sold N tonight" counts, and
+  availability toggles. Anything switched off shows as **"Back tomorrow"** in
+  the app — never a shouty "OUT OF STOCK".
 - **Sales**: last-24h orders, revenue, average order, busiest hours, top items,
   UPI/cash split.
+
+## Marketing artboards
+
+`marketing/posters.html` holds three print/post-ready artboards in the brand
+(story, Tuesday-deal post, and an A3 hostel-wall poster with tear-off phone
+tabs). Re-export them with `node scripts/export-posters.cjs`; PNGs land in
+`marketing/exports/`. See `marketing/README.md`.
 
 ## Deploying
 

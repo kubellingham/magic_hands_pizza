@@ -4,20 +4,20 @@ import { useCart } from '../cart/CartContext'
 import { loadLastOrder, clearLastOrder } from '../lib/lastOrder'
 import { fetchOrderStatus, type OrderStatus } from '../lib/tracking'
 
-const POLL_MS = 30_000
+const POLL_MS = 15_000
 
 const STATUS_TEXT: Record<OrderStatus, string> = {
   new: 'Order received',
-  preparing: 'Preparing your food',
-  ready: 'Ready!',
-  out: 'Out for delivery',
+  preparing: 'In the oven now',
+  ready: 'Boxed and ready',
+  out: 'On the way to you',
   delivered: '',
   cancelled: '',
 }
 
 /**
- * Floating strip on Home while an order is in flight — sits just above the
- * cart bar when both are visible. Disappears once delivered/cancelled.
+ * Live strip on Home while an order is in flight — sits above the cart bar
+ * when both are showing. Clears itself once delivered or cancelled.
  */
 export function ActiveOrderBanner() {
   const { count } = useCart()
@@ -46,22 +46,25 @@ export function ActiveOrderBanner() {
   }, [])
 
   if (!order) return null
-  const bottom = count > 0 ? 'bottom-[60px] pb-1' : 'bottom-0 pb-[env(safe-area-inset-bottom)]'
 
   return (
-    <div className={`fixed inset-x-0 z-30 mx-auto max-w-md ${bottom}`}>
+    <div
+      className={`fixed inset-x-0 z-30 mx-auto max-w-md px-3 ${
+        count > 0 ? 'bottom-[72px]' : 'bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))]'
+      }`}
+    >
       <Link
         to={`/track/${order.code}`}
-        className="mx-3 mb-2 flex items-center justify-between rounded-xl border border-veg/40 bg-[#132a1c] px-4 py-3 shadow-[0_6px_20px_rgba(0,0,0,.45)]"
+        className="flex items-center justify-between rounded-2xl border border-accent/30 bg-card px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,.35)]"
       >
-        <span className="flex items-center gap-2.5 text-[13px] font-bold text-white">
+        <span className="flex items-center gap-2.5 text-[13px] font-bold">
           <span className="relative flex h-2.5 w-2.5">
-            <span className="absolute h-full w-full animate-ping rounded-full bg-veg opacity-60" />
-            <span className="h-2.5 w-2.5 rounded-full bg-veg" />
+            <span className="absolute h-full w-full animate-ping rounded-full bg-accent opacity-60" />
+            <span className="h-2.5 w-2.5 rounded-full bg-accent" />
           </span>
-          🛵 {STATUS_TEXT[order.status]} · {order.code}
+          {STATUS_TEXT[order.status]} · {order.code}
         </span>
-        <span className="text-xs font-bold text-veg">Track ›</span>
+        <span className="text-xs font-bold text-accent">Track ›</span>
       </Link>
     </div>
   )

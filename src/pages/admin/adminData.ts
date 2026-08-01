@@ -127,11 +127,26 @@ export function useAdminPrices(): {
   return { overrides, savePrice }
 }
 
-/** Home-screen content (special card + trending picks) with staff save. */
+/** Sold-per-item counts for tonight's shift — doubles as a mise-en-place hint. */
+export function soldTonight(orders: AdminOrder[]): Record<string, number> {
+  const counts: Record<string, number> = {}
+  for (const order of orders) {
+    if (order.status === 'cancelled') continue
+    for (const item of order.items) {
+      if (item.lineTotal === 0) continue
+      const key = item.item.toLowerCase()
+      counts[key] = (counts[key] ?? 0) + item.qty
+    }
+  }
+  return counts
+}
+
+/** Home-screen content (special card, trending picks, pause valve). */
 export function useAdminHomeContent(): {
   content: HomeContent
   saveSpecial: (badge: string, title: string) => Promise<boolean>
   saveTrending: (items: string[]) => Promise<boolean>
+  setPaused: (paused: boolean) => Promise<boolean>
 } {
   const content = useHomeContent()
 
@@ -153,7 +168,14 @@ export function useAdminHomeContent(): {
     return !error
   }, [])
 
-  return { content, saveSpecial, saveTrending }
+  const setPaused = useCallback(async (paused: boolean) => {
+    if (!supabase) return false
+    const { error } = await supabase.from('home_content').upsert({ key: 'store', value: { paused } })
+    await loadHomeContent()
+    return !error
+  }, [])
+
+  return { content, saveSpecial, saveTrending, setPaused }
 }
 
 /** Staff list management — RLS restricts every call to admins. */

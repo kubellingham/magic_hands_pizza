@@ -52,6 +52,8 @@ export interface Bill {
   toPay: number
   /** Non-price notes, e.g. the Tuesday free-pizza deal (needs a pizza choice) */
   notes: string[]
+  /** Upsell nudge when a deal is one step away — sells instead of scolding */
+  nudge: string | null
 }
 
 function largePizzaCount(priced: PricedLine[]): number {
@@ -75,9 +77,21 @@ export function computeBill(priced: PricedLine[], now: Date): Bill {
   const largePizzas = largePizzaCount(priced)
   const freeDrink = largePizzas >= 2
   const discount = itemTotal >= 999 ? Math.round(itemTotal * 0.1) : 0
+  const isTuesday = now.getDay() === 2
   const notes: string[] = []
-  if (freeDrink && now.getDay() === 2) {
-    notes.push('Tuesday deal: 2 Large pizzas → 1 Small pizza FREE — tell us your pick!')
+  if (freeDrink && isTuesday) {
+    notes.push('Tuesday deal: 2 large pizzas → 1 small pizza free — tell us your pick!')
   }
-  return { itemTotal, discount, freeDrink, toPay: itemTotal - discount, notes }
+
+  // One step from a deal? Say so — it sells better than a silent cart.
+  let nudge: string | null = null
+  if (largePizzas === 1) {
+    nudge = isTuesday
+      ? 'Add 1 more large pizza → a small one rides free'
+      : 'Add 1 more large pizza → 750ml cold drink free'
+  } else if (itemTotal >= 800 && itemTotal < 999) {
+    nudge = `₹${999 - itemTotal} more and 10% comes off the whole order`
+  }
+
+  return { itemTotal, discount, freeDrink, toPay: itemTotal - discount, notes, nudge }
 }

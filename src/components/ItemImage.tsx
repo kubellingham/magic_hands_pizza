@@ -10,12 +10,15 @@ interface Props {
 
 /**
  * Shows /images/menu/<itemId>.jpg when the owner has dropped a photo in
- * public/images/menu/, otherwise falls back to the warm gradient art.
+ * public/images/menu/, otherwise falls back to warm oven-glow art.
  */
 export function ItemImage({ itemId, category, className = '', children }: Props) {
   const [hasPhoto, setHasPhoto] = useState(true)
   return (
-    <div className={`relative overflow-hidden ${className}`} style={{ background: foodGradient(itemId, category) }}>
+    <div
+      className={`relative overflow-hidden ${className}`}
+      style={{ background: foodGradient(itemId, category) }}
+    >
       {hasPhoto && (
         <img
           src={`/images/menu/${itemId}.jpg`}

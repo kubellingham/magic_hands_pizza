@@ -1,25 +1,85 @@
+import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { itemsInCategory } from '../data/menu'
+import { MENU, itemsInCategory } from '../data/menu'
 import { MENU_GROUPS, CATEGORY_TITLES } from '../data/groups'
 import type { MenuItem } from '../data/types'
 import { useAvailability, isAvailable } from '../lib/availability'
-import { usePriceOverrides, effectivePrice, type OverrideMap } from '../lib/livePrices'
+import { usePriceOverrides, effectiveMinPrice, type OverrideMap } from '../lib/livePrices'
+import { useHomeContent } from '../lib/homeContent'
 import { formatINR } from '../lib/format'
 import { useCart } from '../cart/CartContext'
 import { VegDot } from '../components/VegDot'
 import { ItemImage } from '../components/ItemImage'
 import { StickyCartBar } from '../components/StickyCartBar'
 
-/** The advertised card price: Medium when the item has sizes, else its first option. */
-function displayVariant(item: MenuItem) {
-  return item.variants.find((v) => v.id === 'M') ?? item.variants[0]
+/** "S · M · L" — the sizes are visible before tapping in. */
+function sizeLabel(item: MenuItem): string {
+  if (item.variants.length === 1) return ''
+  return item.variants
+    .map((v) => {
+      if (v.id === 'veg') return 'Veg'
+      if (v.id === 'nonveg') return 'Non-veg'
+      if (v.id === 'half') return 'Half'
+      if (v.id === 'full') return 'Full'
+      return v.id
+    })
+    .join(' · ')
 }
 
-function priceTag(item: MenuItem, overrides: OverrideMap): string {
-  const variant = displayVariant(item)
-  const price = formatINR(effectivePrice(overrides, item.id, variant))
-  if (item.variants.length === 1) return price
-  return `${price} · ${variant.label || 'from'}`
+interface RowProps {
+  item: MenuItem
+  overrides: OverrideMap
+  available: boolean
+  bestseller: boolean
+  onOpen: () => void
+  onAdd: () => void
+}
+
+function MenuRow({ item, overrides, available, bestseller, onOpen, onAdd }: RowProps) {
+  const sizes = sizeLabel(item)
+  return (
+    <div className={`flex items-center gap-3 px-5 py-3 ${available ? '' : 'opacity-45'}`}>
+      <button type="button" onClick={onOpen} disabled={!available} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+        <ItemImage itemId={item.id} category={item.category} className="h-[62px] w-[62px] shrink-0 rounded-xl">
+          <VegDot isVeg={item.isVeg} className="absolute top-1 left-1 scale-[.8]" />
+        </ItemImage>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-1.5">
+            <span className="truncate text-[15px] font-bold">{item.name.replace(/ Pizza$/, '')}</span>
+            {bestseller && available && (
+              <span className="shrink-0 rounded bg-accent/15 px-1.5 py-0.5 text-[9px] font-extrabold tracking-wide text-accent">
+                BESTSELLER
+              </span>
+            )}
+          </span>
+          <span className="mt-0.5 block truncate text-[11px] text-mut">
+            {item.description ?? 'Fresh from the oven'}
+          </span>
+          <span className="mt-1 flex items-baseline gap-2">
+            {available ? (
+              <>
+                <span className="font-display text-[15px] font-extrabold text-accent">
+                  {formatINR(effectiveMinPrice(overrides, item))}
+                </span>
+                {sizes && <span className="text-[10px] font-semibold text-mut">{sizes}</span>}
+              </>
+            ) : (
+              <span className="text-[11px] font-bold text-mut">Back tomorrow</span>
+            )}
+          </span>
+        </span>
+      </button>
+      <button
+        type="button"
+        aria-label={`Add ${item.name}`}
+        disabled={!available}
+        onClick={onAdd}
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-lg leading-none text-white shadow-[0_4px_14px_rgba(230,51,42,.4)] disabled:opacity-30 disabled:shadow-none"
+      >
+        +
+      </button>
+    </div>
+  )
 }
 
 export function Menu() {
@@ -27,104 +87,121 @@ export function Menu() {
   const [params, setParams] = useSearchParams()
   const availability = useAvailability()
   const overrides = usePriceOverrides()
+  const { trending } = useHomeContent()
   const { dispatch } = useCart()
   const activeGroup = params.get('group') ?? 'all'
+  const initialQuery = params.get('q') ?? ''
+  const [query, setQuery] = useState(initialQuery)
+
   const groups = activeGroup === 'all' ? MENU_GROUPS : MENU_GROUPS.filter((g) => g.id === activeGroup)
 
-  const hasChoices = (item: MenuItem) => item.variants.length > 1 || item.supportsAddOns
+  const searchResults = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return null
+    return MENU.filter(
+      (item) =>
+        item.name.toLowerCase().includes(q) ||
+        (item.description ?? '').toLowerCase().includes(q) ||
+        CATEGORY_TITLES[item.category].toLowerCase().includes(q),
+    )
+  }, [query])
 
-  const quickAdd = (item: MenuItem) => {
-    if (hasChoices(item)) {
+  const add = (item: MenuItem) => {
+    if (item.variants.length > 1 || item.supportsAddOns) {
       navigate(`/item/${item.id}`)
       return
     }
-    // simple item: straight into the cart, stay on the menu
     dispatch({ type: 'add', itemId: item.id, variantId: item.variants[0].id, addOnIds: [] })
   }
 
+  const rowFor = (item: MenuItem) => (
+    <MenuRow
+      key={item.id}
+      item={item}
+      overrides={overrides}
+      available={isAvailable(availability, item.id)}
+      bestseller={trending.includes(item.id)}
+      onOpen={() => navigate(`/item/${item.id}`)}
+      onAdd={() => add(item)}
+    />
+  )
+
   return (
-    <div className="flex min-h-dvh flex-col bg-surface pb-24">
-      <div className="flex items-center gap-3 px-5 pt-4 pb-2">
-        <button type="button" onClick={() => navigate('/')} aria-label="Back" className="text-xl text-white">
-          ‹
-        </button>
-        <span className="font-cond text-[22px] font-bold">Full Menu</span>
-      </div>
-
-      <div className="no-scrollbar flex gap-2 overflow-x-auto border-b border-white/5 px-5 pb-2.5">
-        {[{ id: 'all', label: 'All' }, ...MENU_GROUPS].map((g) => (
-          <button
-            key={g.id}
-            type="button"
-            onClick={() => setParams(g.id === 'all' ? {} : { group: g.id })}
-            className={`shrink-0 rounded-full px-[15px] py-2 text-[13px] font-bold whitespace-nowrap ${
-              g.id === activeGroup ? 'bg-brand text-white' : 'bg-chip text-soft'
-            }`}
-          >
-            {g.label}
+    <div className="flex min-h-dvh flex-col bg-surface pb-28">
+      <div className="sticky top-0 z-10 bg-surface pt-4 pb-2">
+        <div className="flex items-center gap-3 px-5">
+          <button type="button" onClick={() => navigate('/')} aria-label="Back" className="text-xl">
+            ‹
           </button>
-        ))}
+          <h1 className="font-display text-[22px] font-extrabold">Menu</h1>
+          <div className="ml-auto flex flex-1 items-center gap-2 rounded-full border border-line bg-card px-3 py-1.5">
+            <span className="text-xs text-brand">🔍</span>
+            <input
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value)
+                const next = new URLSearchParams(params)
+                if (e.target.value) next.set('q', e.target.value)
+                else next.delete('q')
+                setParams(next, { replace: true })
+              }}
+              placeholder="Search the menu…"
+              className="w-full bg-transparent text-xs outline-none placeholder:text-mut"
+            />
+          </div>
+        </div>
+
+        {!searchResults && (
+          <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto border-b border-line px-5 pb-3">
+            {[{ id: 'all', label: 'All' }, ...MENU_GROUPS].map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => setParams(g.id === 'all' ? {} : { group: g.id })}
+                className={`shrink-0 rounded-full px-4 py-1.5 text-[13px] font-bold whitespace-nowrap ${
+                  g.id === activeGroup ? 'bg-brand text-white' : 'border border-line bg-card text-soft'
+                }`}
+              >
+                {g.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="flex-1">
-        {groups.map((group) =>
-          group.categories.map((cat) => {
-            const items = itemsInCategory(cat)
-            if (items.length === 0) return null
-            return (
-              <section key={cat}>
-                <div className="px-5 pt-4 pb-2">
-                  <span className="font-cond text-xl font-bold text-brand">{CATEGORY_TITLES[cat]}</span>
-                </div>
-                <div className="flex flex-col gap-3 px-5">
-                  {items.map((item) => {
-                    const available = isAvailable(availability, item.id)
-                    return (
-                      <div
-                        key={item.id}
-                        className={`flex items-stretch gap-3 overflow-hidden rounded-[18px] border border-white/5 bg-card ${
-                          available ? '' : 'opacity-45'
-                        }`}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => available && navigate(`/item/${item.id}`)}
-                          className="flex min-w-0 flex-1 items-stretch gap-3 text-left"
-                        >
-                          <ItemImage itemId={item.id} category={item.category} className="h-[88px] w-[88px] shrink-0 rounded-r-[14px]">
-                            <VegDot isVeg={item.isVeg} className="absolute top-1.5 left-1.5 scale-90" />
-                          </ItemImage>
-                          <div className="min-w-0 flex-1 py-2.5 pr-1">
-                            <div className="truncate text-sm font-bold">
-                              {item.name}
-                              {!available && <span className="ml-1.5 text-[11px] font-bold text-brand">· OUT OF STOCK</span>}
-                            </div>
-                            {item.description && (
-                              <div className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-mut">{item.description}</div>
-                            )}
-                            <div className="font-cond mt-1.5 text-base font-bold text-gold">
-                              {priceTag(item, overrides)}
-                            </div>
-                          </div>
-                        </button>
-                        <div className="flex items-center pr-3">
-                          <button
-                            type="button"
-                            aria-label={`Add ${item.name}`}
-                            disabled={!available}
-                            onClick={() => quickAdd(item)}
-                            className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-xl text-white shadow-[0_4px_12px_rgba(216,31,26,.4)] disabled:opacity-40"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </section>
-            )
-          }),
+      <div className="flex-1 divide-y divide-line">
+        {searchResults ? (
+          searchResults.length > 0 ? (
+            <section>
+              <div className="px-5 pt-4 pb-1">
+                <span className="font-display text-lg font-extrabold text-brand">
+                  {searchResults.length} match{searchResults.length > 1 ? 'es' : ''}
+                </span>
+              </div>
+              <div className="divide-y divide-line">{searchResults.map(rowFor)}</div>
+            </section>
+          ) : (
+            <div className="px-8 py-16 text-center">
+              <p className="font-display text-lg font-extrabold">Nothing by that name.</p>
+              <p className="mt-1 text-sm text-mut">Try "paneer", "tikka" or "shake".</p>
+            </div>
+          )
+        ) : (
+          groups.map((group) =>
+            group.categories.map((cat) => {
+              const items = itemsInCategory(cat)
+              if (items.length === 0) return null
+              return (
+                <section key={cat}>
+                  <div className="flex items-baseline gap-2 px-5 pt-5 pb-1">
+                    <span className="font-display text-lg font-extrabold text-brand">{CATEGORY_TITLES[cat]}</span>
+                    <span className="text-[11px] text-mut">{items.length} items</span>
+                  </div>
+                  <div className="divide-y divide-line">{items.map(rowFor)}</div>
+                </section>
+              )
+            }),
+          )
         )}
         <div className="h-4" />
       </div>

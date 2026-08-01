@@ -15,8 +15,8 @@ export function OrderPlaced() {
   const openWhatsApp = () => {
     if (!state?.waLink || openedRef.current) return
     openedRef.current = true
-    // Same-tab navigation: on phones this hands off to the WhatsApp app,
-    // and it can't be popup-blocked.
+    // Same-tab navigation hands off to the WhatsApp app on phones and
+    // can never be popup-blocked.
     window.location.href = state.waLink
   }
 
@@ -37,84 +37,90 @@ export function OrderPlaced() {
   }, [])
 
   return (
-    <div className="flex min-h-dvh flex-col bg-surface">
-      <div className="flex flex-1 flex-col items-center justify-center px-8 py-6 text-center">
-        <div
-          className="flex h-20 w-20 items-center justify-center rounded-full text-4xl text-white shadow-[0_10px_30px_rgba(46,158,75,.4)]"
-          style={{ background: 'radial-gradient(circle, #2e9e4b, #12813a)' }}
-        >
+    <div className="flex min-h-dvh flex-col bg-surface px-6 pt-10">
+      <div className="flex flex-1 flex-col">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-veg text-2xl text-white">
           ✓
         </div>
-        <h1 className="font-cond mt-4 text-[30px] leading-none font-bold">Order Placed!</h1>
+        <h1 className="font-display mt-5 text-[34px] leading-[1.02] font-extrabold tracking-[-1px]">
+          One tap left.
+        </h1>
+        <p className="mt-2.5 text-[15px] leading-relaxed text-soft">
+          Your order is typed out in WhatsApp. Press <b className="text-veg">Send ➤</b> there — that's what
+          fires the oven.
+        </p>
 
-        <div className="mt-4 w-full rounded-[14px] border border-veg/30 bg-[#132a1c] px-5 py-4 text-left">
-          <div className="text-[13px] leading-relaxed">
-            <b>One last step:</b> we're opening WhatsApp with your order already typed out.
-            Just press the <b className="text-veg">Send ➤</b> button there — that's what
-            tells the kitchen to start cooking.
-          </div>
-          {state?.waLink && secondsLeft > 0 && (
-            <div className="mt-3 flex items-center gap-3">
-              <span className="font-anton flex h-9 w-9 items-center justify-center rounded-full border-2 border-veg text-lg text-veg">
-                {secondsLeft}
-              </span>
-              <span className="text-xs text-mut">Opening WhatsApp in {secondsLeft}s…</span>
-            </div>
-          )}
-          {state?.waLink && (
-            <button
-              type="button"
+        {state?.waLink && (
+          <>
+            <a
+              href={state.waLink}
               onClick={() => {
-                openedRef.current = false
-                openWhatsApp()
+                openedRef.current = true
               }}
-              className="mt-3 w-full rounded-xl bg-veg py-3 text-sm font-extrabold text-white"
+              className="mt-6 block rounded-2xl bg-veg py-4 text-center text-[15px] font-extrabold text-white shadow-[0_8px_24px_rgba(46,158,75,.35)]"
             >
-              Open WhatsApp now
-            </button>
-          )}
-        </div>
+              Open WhatsApp &amp; send ➤
+            </a>
+            <p className="mt-2.5 text-center text-[11px] text-mut">
+              {secondsLeft > 0 ? (
+                <>
+                  Opens automatically in{' '}
+                  <span className="font-display font-extrabold text-accent">{secondsLeft}s</span>
+                </>
+              ) : (
+                'Opened — press Send in WhatsApp'
+              )}
+            </p>
+          </>
+        )}
 
-        <div className="mt-4 w-full rounded-[14px] bg-card px-5 py-4">
-          <div className="text-[11px] text-mut">ORDER NUMBER</div>
-          <div className="font-anton text-[22px] tracking-wide text-gold">{state?.orderCode ?? '—'}</div>
-          <div className="my-3 h-px bg-line" />
-          <div className="flex justify-between text-[13px]">
-            <span className="text-mut">Estimated time</span>
+        <div className="mt-7 rounded-2xl border border-line bg-card p-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-[10px] font-semibold tracking-[1px] text-mut">ORDER</div>
+              <div className="font-display text-[20px] font-extrabold text-accent">
+                {state?.orderCode ?? '—'}
+              </div>
+            </div>
+            {state && (
+              <div className="text-right">
+                <div className="text-[10px] font-semibold tracking-[1px] text-mut">
+                  {state.payment === 'upi' ? 'PAYING BY UPI' : 'PAYING CASH'}
+                </div>
+                <div className="font-display text-[20px] font-extrabold">{formatINR(state.toPay)}</div>
+              </div>
+            )}
+          </div>
+          <div className="mt-3 border-t border-dashed border-line pt-3 text-[13px]">
+            <span className="text-mut">Hot at your door</span>{' '}
             <span className="font-bold">25–30 min</span>
           </div>
-          {state && (
-            <div className="mt-2 flex justify-between text-[13px]">
-              <span className="text-mut">{state.payment === 'upi' ? 'Pay via UPI' : 'Pay with cash'}</span>
-              <span className="font-bold">{formatINR(state.toPay)}</span>
-            </div>
-          )}
         </div>
 
-        {/* UPI QR — appears once the owner drops public/images/payment/upi-qr.png */}
+        {/* UPI QR — appears once public/images/payment/upi-qr.png exists */}
         {state?.payment === 'upi' && showQr && (
-          <div className="mt-4 w-full rounded-[14px] bg-white p-4">
+          <div className="mt-4 rounded-2xl bg-white p-4">
             <img
               src="/images/payment/upi-qr.png"
               alt="UPI payment QR code"
               onError={() => setShowQr(false)}
-              className="mx-auto max-h-56 w-auto"
+              className="mx-auto max-h-52 w-auto"
             />
-            <div className="mt-2 text-center text-[11px] font-bold text-bg">Scan to pay via UPI</div>
+            <div className="mt-2 text-center text-[11px] font-bold text-[#221a12]">Scan to pay by UPI</div>
           </div>
         )}
       </div>
 
-      <div className="flex flex-col gap-2.5 px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+      <div className="flex flex-col gap-3 py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
         <button
           type="button"
           onClick={() => state?.orderCode && navigate(`/track/${state.orderCode}`)}
           disabled={!state?.orderCode}
-          className="w-full rounded-[14px] bg-brand py-3.5 text-center text-sm font-extrabold text-white disabled:opacity-40"
+          className="w-full rounded-2xl border border-line bg-card py-3.5 text-center text-sm font-extrabold disabled:opacity-40"
         >
-          Track Order
+          Track order
         </button>
-        <Link to="/" className="py-1 text-center text-[13px] font-semibold text-mut">
+        <Link to="/" className="text-center text-[13px] font-semibold text-mut">
           Back to home
         </Link>
       </div>

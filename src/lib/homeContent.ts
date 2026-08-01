@@ -8,13 +8,16 @@ export interface SpecialCard {
 
 export interface HomeContent {
   special: SpecialCard
-  /** Exactly the three admin-picked trending item ids */
+  /** The admin-picked items shown on the home rail (also flagged BESTSELLER) */
   trending: string[]
+  /** Kitchen paused — the 3:50 AM safety valve. Blocks new orders. */
+  paused: boolean
 }
 
 export const DEFAULT_HOME_CONTENT: HomeContent = {
-  special: { badge: 'TUESDAY ONLY', title: '2 LARGE + 1 SMALL PIZZA FREE' },
+  special: { badge: 'TUESDAY', title: 'Buy 2 large, small one rides free.' },
   trending: ['overload-veg', 'chicken-tikka-pizza', 'farmhouse'],
+  paused: false,
 }
 
 let content: HomeContent = DEFAULT_HOME_CONTENT
@@ -39,6 +42,9 @@ export async function loadHomeContent(): Promise<void> {
         const items = (row.value.items as unknown[]).filter((x): x is string => typeof x === 'string')
         if (items.length > 0) next.trending = items.slice(0, 3)
       }
+      if (row.key === 'store') {
+        next.paused = row.value?.paused === true
+      }
     }
     content = next
     emit()
@@ -60,5 +66,9 @@ function subscribe(cb: () => void): () => void {
 
 export function useHomeContent(): HomeContent {
   useEffect(ensureLoaded, [])
-  return useSyncExternalStore(subscribe, () => content, () => DEFAULT_HOME_CONTENT)
+  return useSyncExternalStore(
+    subscribe,
+    () => content,
+    () => DEFAULT_HOME_CONTENT,
+  )
 }

@@ -1,23 +1,81 @@
 @import 'tailwindcss';
 
+/*
+ * One brand, two shifts.
+ * Day (11 AM–7 PM) wears the paper counter: cream, ink, green freshness.
+ * Night (7 PM–4 AM) wears the midnight oven: warm black, amber glow.
+ * Identical layouts and type — only these tokens flip, so it reads as a
+ * ritual rather than a redesign. `data-shift` on <html> drives everything.
+ *
+ * NOTE: the utilities consume `--color-*` directly. Custom properties are
+ * substituted where they are DECLARED, so an indirection like
+ * `--color-bg: var(--sh-bg)` would resolve once at :root and descendants
+ * would inherit that computed value — which is why every scope below
+ * redeclares the `--color-*` names themselves.
+ */
+
 @theme {
-  /* Prototype design tokens (Magic Hands Prototype.dc.html) */
-  --color-bg: #100d0b;
-  --color-surface: #141210;
+  /* Night · Midnight Oven (2A) — the defaults */
+  --color-bg: #0c0a09;
+  --color-surface: #171310;
   --color-card: #1c1916;
   --color-chip: #221f1b;
   --color-line: #322d27;
+  --color-ink: #f5efe6;
   --color-mut: #8a8378;
   --color-soft: #c9c2b6;
-  --color-brand: #d81f1a;
-  --color-brand-dark: #a8140f;
-  --color-gold: #ffd400;
+  --color-brand: #e6332a;
+  --color-brand-deep: #a8140f;
+  --color-accent: #ffb524;
   --color-veg: #2e9e4b;
   --color-nonveg: #c0392b;
-  --color-warn: #f7941d;
-  --font-cond: 'Barlow Condensed', sans-serif;
-  --font-anton: 'Anton', sans-serif;
-  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --color-warn: #ffb524;
+
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-sans: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+}
+
+:root,
+:root[data-shift='night'],
+.shift-night {
+  --color-bg: #0c0a09;
+  --color-surface: #171310;
+  --color-card: #1c1916;
+  --color-chip: #221f1b;
+  --color-line: #322d27;
+  --color-ink: #f5efe6;
+  --color-mut: #8a8378;
+  --color-soft: #c9c2b6;
+  --color-brand: #e6332a;
+  --color-accent: #ffb524;
+  --color-veg: #2e9e4b;
+  --sh-hero: linear-gradient(180deg, #2a100d, #150b09);
+  --sh-glow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --sh-page: radial-gradient(130% 55% at 50% -12%, rgba(230, 51, 42, 0.28), transparent 62%),
+    radial-gradient(95% 55% at 112% 108%, rgba(255, 181, 36, 0.14), transparent 60%), #0c0a09;
+}
+
+/* ── Day shift · Corner Counter (2B) ─────────────────────────────────── */
+:root[data-shift='day'] {
+  --color-bg: #faf3e3;
+  --color-surface: #ffffff;
+  --color-card: #ffffff;
+  --color-chip: #f0e7d4;
+  --color-line: #e0d5bd;
+  --color-ink: #221a12;
+  --color-mut: #8c7a5e;
+  --color-soft: #4a3f33;
+  --color-brand: #d92f21;
+  --color-accent: #1e7a43;
+  --color-veg: #1e7a43;
+  --sh-hero: linear-gradient(180deg, #ffffff, #fdf8ee);
+  --sh-glow: 0 6px 20px rgba(34, 26, 18, 0.1);
+  --sh-page: radial-gradient(120% 50% at 50% -10%, rgba(217, 47, 33, 0.07), transparent 60%), #faf3e3;
+}
+
+/* The kitchen board lives on a screen in a dark kitchen — always night. */
+.shift-night {
+  color: var(--color-ink);
 }
 
 html {
@@ -26,12 +84,19 @@ html {
 
 body {
   margin: 0;
-  color: #fff;
+  color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.4s ease;
 }
 
-/* Hide scrollbars on chip rows */
+.page-bg {
+  background: var(--sh-page);
+}
+.hero-bg {
+  background: var(--sh-hero);
+}
+
 .no-scrollbar {
   scrollbar-width: none;
 }

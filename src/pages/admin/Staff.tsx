@@ -23,8 +23,8 @@ export function Staff({ currentEmail }: { currentEmail: string | null }) {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b border-white/5 px-6 py-4">
-        <span className="font-cond text-2xl font-bold text-white">Staff</span>
+      <div className="flex items-center justify-between border-b border-line px-6 py-4">
+        <span className="font-display text-2xl font-extrabold">Staff</span>
         <span className="text-xs text-mut">Everyone listed here has full dashboard access</span>
       </div>
 
@@ -35,7 +35,7 @@ export function Staff({ currentEmail }: { currentEmail: string | null }) {
             placeholder="new-staff@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="flex-1 rounded-xl border border-line bg-card px-4 py-2.5 text-sm text-white outline-none placeholder:text-mut focus:border-brand"
+            className="flex-1 rounded-xl border border-line bg-card px-4 py-2.5 text-sm outline-none placeholder:text-mut focus:border-brand"
           />
           <button
             type="submit"
@@ -55,8 +55,8 @@ export function Staff({ currentEmail }: { currentEmail: string | null }) {
 
         <div className="mt-5 flex flex-col">
           {staff.map((member) => (
-            <div key={member} className="flex items-center justify-between border-t border-white/5 py-3">
-              <span className="text-sm font-semibold text-white">
+            <div key={member} className="flex items-center justify-between border-t border-line py-3">
+              <span className="text-sm font-semibold">
                 {member}
                 {member === currentEmail && <span className="ml-2 text-[11px] font-bold text-veg">· you</span>}
               </span>

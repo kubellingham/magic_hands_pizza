@@ -9,68 +9,83 @@ export function About() {
   return (
     <div className="flex min-h-dvh flex-col bg-surface">
       <div className="flex items-center gap-3 px-5 pt-4 pb-2">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Back" className="text-xl text-white">
+        <button type="button" onClick={() => navigate(-1)} aria-label="Back" className="text-xl">
           ‹
         </button>
-        <span className="font-cond text-[22px] font-bold">About</span>
+        <h1 className="font-display text-[22px] font-extrabold">The shop</h1>
       </div>
 
-      <div className="mx-5 mt-2 rounded-[18px] bg-card p-5">
-        <Logo />
-        <p className="mt-3 text-center text-sm text-soft">{RESTAURANT.address}</p>
-
-        <div className="mt-5 flex flex-col gap-2.5 text-sm">
-          <div className="flex items-center gap-2.5">
-            <span>🕚</span>
-            <span>
-              {RESTAURANT.hoursDisplay}{' '}
-              <span className={`font-bold ${open ? 'text-veg' : 'text-brand'}`}>
-                · {open ? 'Open now' : 'Closed'}
-              </span>
-            </span>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <span>🛵</span>
-            <span>{RESTAURANT.deliveryNote}</span>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <span>⏱️</span>
-            <span>{RESTAURANT.prepTimeNote}</span>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <span>🍽️</span>
-            <span>Also on Zomato &amp; Swiggy</span>
-          </div>
+      <div className="px-5 pt-4">
+        <div className="flex flex-col items-center">
+          <Logo size="lg" />
+          <p className="font-display mt-4 text-center text-[24px] leading-[1.1] font-extrabold tracking-[-.5px]">
+            The light that&rsquo;s
+            <br />
+            <span className="text-accent">still on.</span>
+          </p>
+          <p className="mt-3 max-w-[280px] text-center text-[13px] leading-relaxed text-mut">
+            When every other kitchen near LPU goes dark at 11, we&rsquo;re still firing till 4 AM.
+          </p>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3">
+        <div className="mt-7 rounded-2xl border border-line bg-card p-5">
+          <div className="flex flex-col gap-3 text-[13px]">
+            <div className="flex items-center gap-3">
+              <span className="w-5">🕚</span>
+              <span>
+                {RESTAURANT.hoursDisplay}{' '}
+                <span className={`font-bold ${open ? 'text-veg' : 'text-brand'}`}>
+                  · {open ? 'open now' : 'closed'}
+                </span>
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="w-5">🛵</span>
+              <span>Free delivery near LPU (conditions apply)</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="w-5">⏱️</span>
+              <span>Hot in 25–30 minutes. Every time.</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="w-5">📍</span>
+              <span className="flex-1">{RESTAURANT.address}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="w-5">🍽️</span>
+              <span>Also on Zomato &amp; Swiggy</span>
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <a
+              href={RESTAURANT.telLink}
+              className="rounded-2xl border border-brand py-3 text-center text-sm font-bold text-brand"
+            >
+              Call us
+            </a>
+            <a
+              href={`https://wa.me/${RESTAURANT.whatsappNumber}`}
+              target="_blank"
+              rel="noopener"
+              className="rounded-2xl bg-veg py-3 text-center text-sm font-bold text-white"
+            >
+              WhatsApp
+            </a>
+          </div>
           <a
-            href={RESTAURANT.telLink}
-            className="rounded-[14px] border border-brand py-2.5 text-center text-sm font-bold text-brand"
-          >
-            📞 Call us
-          </a>
-          <a
-            href={`https://wa.me/${RESTAURANT.whatsappNumber}`}
+            href={RESTAURANT.mapsUrl}
             target="_blank"
             rel="noopener"
-            className="rounded-[14px] bg-veg py-2.5 text-center text-sm font-bold text-white"
+            className="mt-3 block rounded-2xl border border-line bg-chip py-3 text-center text-sm font-semibold text-soft"
           >
-            💬 WhatsApp
+            Open in Google Maps
           </a>
         </div>
-        <a
-          href={RESTAURANT.mapsUrl}
-          target="_blank"
-          rel="noopener"
-          className="mt-3 block rounded-[14px] bg-chip py-2.5 text-center text-sm font-semibold text-soft"
-        >
-          📍 Open in Google Maps
-        </a>
       </div>
 
-      <p className="mt-auto px-5 py-5 text-center text-[11px] text-mut">
-        Made with ❤️ for {RESTAURANT.name} · Order line: {RESTAURANT.phoneDisplay}
+      <p className="mt-auto px-5 py-6 text-center text-[11px] text-mut">
+        Magic Hand&rsquo;s Pizza · {RESTAURANT.phoneDisplay} · Meheru, LPU
       </p>
     </div>
   )

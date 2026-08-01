@@ -1,7 +1,9 @@
+import type { AddOnId } from '../data/addons'
+
 /**
  * On-device order history (no accounts): the full snapshot of every order
- * this phone placed, saved at placement time. Powers the My Orders page and
- * customer-side receipts.
+ * this phone placed, saved at placement time. Powers My Orders, receipts,
+ * and one-tap reorder.
  */
 
 export interface ReceiptItem {
@@ -10,6 +12,10 @@ export interface ReceiptItem {
   addOns: string[]
   qty: number
   lineTotal: number
+  /** Cart refs — present from v2 onward, enable exact reorder */
+  itemId?: string
+  variantId?: string
+  addOnIds?: AddOnId[]
 }
 
 export interface OrderRecord {
@@ -45,4 +51,18 @@ export function addOrderToHistory(record: OrderRecord): void {
   } catch {
     // storage unavailable — history just won't persist
   }
+}
+
+/** Lines that can be put straight back in the cart (skips free-offer items). */
+export function reorderableLines(
+  record: OrderRecord,
+): Array<{ itemId: string; variantId: string; addOnIds: AddOnId[]; qty: number }> {
+  return record.items
+    .filter((i) => i.itemId && i.variantId && i.lineTotal > 0)
+    .map((i) => ({
+      itemId: i.itemId!,
+      variantId: i.variantId!,
+      addOnIds: i.addOnIds ?? [],
+      qty: i.qty,
+    }))
 }

@@ -19,8 +19,8 @@ export function OfflineBanner() {
   const online = useOnline()
   if (online) return null
   return (
-    <div className="bg-gold px-4 py-2 text-center text-xs font-bold text-bg">
-      You're offline — browse the menu freely; connect to place an order.
+    <div className="bg-accent px-4 py-2 text-center text-xs font-bold text-bg">
+      No signal — browse away, you'll need a connection to send the order.
     </div>
   )
 }

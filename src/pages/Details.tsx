@@ -5,10 +5,7 @@ import { isValidIndianMobile } from '../lib/format'
 import { RESTAURANT } from '../data/restaurant'
 import { Logo } from '../components/Logo'
 
-/**
- * Profile: name, phone, and up to 5 saved delivery addresses (all stored
- * on-device only). Doubles as the first-run details form during checkout.
- */
+/** Name, phone and up to five saved addresses — all on-device, no login. */
 export function Details() {
   const navigate = useNavigate()
   const [profile, setProfile] = useState<Profile>(loadProfile)
@@ -19,8 +16,8 @@ export function Details() {
 
   const addAddress = () => {
     const text = draft.trim()
-    if (text.length < 5) return setError('Please enter the full address (hostel/PG, room, landmark).')
-    if (profile.addresses.length >= MAX_ADDRESSES) return setError(`You can save up to ${MAX_ADDRESSES} addresses.`)
+    if (text.length < 5) return setError('Give us the full address — hostel/PG, room, landmark.')
+    if (profile.addresses.length >= MAX_ADDRESSES) return setError('Five saved spots is the max.')
     setField({ addresses: [...profile.addresses, text], selected: profile.addresses.length })
     setDraft('')
     setError('')
@@ -28,66 +25,69 @@ export function Details() {
 
   const removeAddress = (i: number) => {
     const addresses = profile.addresses.filter((_, idx) => idx !== i)
-    const selected = Math.min(profile.selected > i ? profile.selected - 1 : profile.selected, Math.max(0, addresses.length - 1))
+    const selected = Math.min(
+      profile.selected > i ? profile.selected - 1 : profile.selected,
+      Math.max(0, addresses.length - 1),
+    )
     setField({ addresses, selected })
   }
 
   const save = () => {
-    if (profile.name.trim().length < 2) return setError('Please enter your name.')
-    if (!isValidIndianMobile(profile.phone)) return setError('Please enter a valid 10-digit mobile number.')
-    const pendingDraft = draft.trim()
+    if (profile.name.trim().length < 2) return setError('We need a name for the order.')
+    if (!isValidIndianMobile(profile.phone)) return setError('A valid 10-digit mobile number, please.')
+    const pending = draft.trim()
     let final = profile
-    if (profile.addresses.length === 0 && pendingDraft.length >= 5) {
-      final = { ...profile, addresses: [pendingDraft], selected: 0 }
+    if (profile.addresses.length === 0 && pending.length >= 5) {
+      final = { ...profile, addresses: [pending], selected: 0 }
     }
-    if (final.addresses.length === 0) return setError('Please add at least one delivery address.')
+    if (final.addresses.length === 0) return setError('Add at least one address so we know where to go.')
     saveProfile({ ...final, name: final.name.trim() })
     navigate(-1)
   }
 
   const inputClass =
-    'w-full rounded-xl border border-line bg-card px-4 py-3.5 text-[15px] font-semibold text-white outline-none placeholder:font-normal placeholder:text-mut focus:border-brand'
+    'w-full rounded-2xl border border-line bg-card px-4 py-3.5 text-[15px] font-semibold outline-none placeholder:font-normal placeholder:text-mut focus:border-brand'
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface">
-      <div
-        className="relative flex h-[170px] shrink-0 flex-col items-center justify-center"
-        style={{ background: 'linear-gradient(160deg, #3a1512, #141210)' }}
-      >
+      <div className="hero-bg relative flex shrink-0 flex-col items-center px-5 pt-12 pb-6">
         <button
           type="button"
           onClick={() => navigate(-1)}
           aria-label="Back"
-          className="absolute top-3.5 left-4 flex h-[34px] w-[34px] items-center justify-center rounded-full bg-black/35 text-lg text-white"
+          className="absolute top-4 left-4 flex h-9 w-9 items-center justify-center rounded-full border border-line bg-card text-lg"
         >
           ‹
         </button>
-        <Logo size="lg" />
-        <div className="mt-2 text-xs text-mut">Meheru, LPU Low Gate · {RESTAURANT.hoursDisplay}</div>
-      </div>
-
-      <div className="flex items-start justify-between px-6 pt-5">
-        <div>
-          <h1 className="font-cond text-2xl leading-[1.05] font-bold">Your details</h1>
-          <p className="mt-1.5 text-xs text-mut">Saved on your phone only — used to fill your orders.</p>
-        </div>
-        <Link to="/orders" className="mt-1 shrink-0 rounded-xl bg-chip px-3.5 py-2 text-xs font-bold text-soft">
-          🧾 My orders
+        <Link
+          to="/orders"
+          className="absolute top-4 right-4 rounded-xl border border-line bg-card px-3 py-2 text-[11px] font-bold"
+        >
+          🧾 Orders
         </Link>
+        <Logo size="lg" />
+        <div className="mt-2 text-[11px] text-mut">Meheru, LPU Low Gate · {RESTAURANT.hoursDisplay}</div>
       </div>
 
-      <div className="flex flex-col gap-3 px-6 pt-4">
+      <div className="px-5 pt-6">
+        <h1 className="font-display text-[26px] leading-[1.05] font-extrabold tracking-[-.5px]">Your details</h1>
+        <p className="mt-1.5 text-[13px] text-mut">
+          Stays on your phone. We only use it to fill out your order.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3 px-5 pt-5">
         <input
           className={inputClass}
           placeholder="Your name"
           value={profile.name}
           onChange={(e) => setField({ name: e.target.value })}
         />
-        <div className="flex items-center gap-2.5 rounded-xl border border-line bg-card px-4 py-3.5">
+        <div className="flex items-center gap-2.5 rounded-2xl border border-line bg-card px-4 py-3.5">
           <span className="text-[15px] font-bold text-soft">+91</span>
           <span className="h-5 w-px bg-line" />
           <input
-            className="w-full bg-transparent text-[15px] font-bold tracking-wide text-white outline-none placeholder:font-normal placeholder:text-mut"
+            className="w-full bg-transparent text-[15px] font-bold tracking-wide outline-none placeholder:font-normal placeholder:text-mut"
             placeholder="Mobile number"
             inputMode="tel"
             maxLength={10}
@@ -96,13 +96,13 @@ export function Details() {
           />
         </div>
 
-        <div className="mt-1 text-[11px] font-bold tracking-wide text-mut">
+        <div className="mt-2 text-[10px] font-extrabold tracking-[1px] text-mut">
           SAVED ADDRESSES ({profile.addresses.length}/{MAX_ADDRESSES})
         </div>
         {profile.addresses.map((address, i) => (
           <div
             key={`${i}-${address.slice(0, 12)}`}
-            className={`flex items-start gap-3 rounded-xl border p-3 ${
+            className={`flex items-start gap-3 rounded-2xl border p-3.5 ${
               i === profile.selected ? 'border-brand bg-brand/10' : 'border-line bg-card'
             }`}
           >
@@ -133,7 +133,7 @@ export function Details() {
               className={inputClass}
               placeholder={
                 profile.addresses.length === 0
-                  ? 'Delivery address (hostel/PG, room, landmark…)'
+                  ? 'Delivery address — hostel/PG, room, landmark'
                   : 'Add another address…'
               }
               rows={2}
@@ -149,15 +149,15 @@ export function Details() {
         )}
       </div>
 
-      {error && <p className="px-6 pt-3 text-xs font-semibold text-brand">{error}</p>}
+      {error && <p className="px-5 pt-3 text-xs font-semibold text-brand">{error}</p>}
 
-      <div className="mt-auto px-6 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+      <div className="mt-auto px-5 py-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
         <button
           type="button"
           onClick={save}
-          className="w-full rounded-[14px] bg-brand py-[15px] text-center text-sm font-extrabold text-white shadow-[0_6px_16px_rgba(216,31,26,.4)]"
+          className="w-full rounded-2xl bg-brand py-4 text-center text-[15px] font-extrabold text-white shadow-[0_8px_24px_rgba(230,51,42,.4)]"
         >
-          Save &amp; Continue
+          Save &amp; continue
         </button>
       </div>
     </div>

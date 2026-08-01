@@ -7,7 +7,7 @@ export function orderSummaryLines(order: AdminOrder) {
     <span key={i}>
       {it.qty}× {it.item}
       {it.variant ? ` (${it.variant[0]})` : ''}
-      {it.addOns?.length > 0 && <span className="text-gold text-[11px]"> + {it.addOns.join(', ')}</span>}
+      {it.addOns?.length > 0 && <span className="text-accent text-[11px]"> + {it.addOns.join(', ')}</span>}
       <br />
     </span>
   ))
@@ -32,7 +32,7 @@ export function OrderCard({ order, highlight, accent, meta, children }: Props) {
       style={accent ? { borderLeft: `3px solid ${accent}` } : undefined}
     >
       <div className="flex items-center justify-between">
-        <span className="font-anton text-[15px] text-gold">{order.order_code}</span>
+        <span className="font-display text-[15px] text-accent">{order.order_code}</span>
         <span className="text-[11px] text-mut">{meta ?? ageLabel(order.created_at)}</span>
       </div>
       <div className="mt-2 text-xs leading-normal text-soft">{orderSummaryLines(order)}</div>
@@ -40,7 +40,7 @@ export function OrderCard({ order, highlight, accent, meta, children }: Props) {
         <span className="text-[11px] text-mut">
           {order.fulfilment === 'delivery' ? 'Delivery' : 'Pickup'} · {order.payment.toUpperCase()}
         </span>
-        <span className="text-sm font-bold text-white">{formatINR(order.total ?? order.subtotal)}</span>
+        <span className="text-sm font-bold">{formatINR(order.total ?? order.subtotal)}</span>
       </div>
       {order.notes && <div className="mt-1.5 text-[11px] text-warn">✎ {order.notes}</div>}
       {children}

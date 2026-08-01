@@ -1,28 +1,29 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { loadOrderHistory, type OrderRecord } from '../lib/orderHistory'
+import { loadOrderHistory, reorderableLines, type OrderRecord } from '../lib/orderHistory'
 import { fetchOrderStatus, type OrderStatus } from '../lib/tracking'
 import { downloadReceiptPdf } from '../lib/receipt'
 import { formatINR } from '../lib/format'
+import { useCart } from '../cart/CartContext'
 
 const STATUS_CHIP: Record<OrderStatus, { label: string; cls: string }> = {
   new: { label: 'Received', cls: 'bg-chip text-soft' },
-  preparing: { label: 'Preparing', cls: 'bg-warn/20 text-warn' },
-  ready: { label: 'Ready', cls: 'bg-veg/20 text-veg' },
-  out: { label: 'On the way', cls: 'bg-veg/20 text-veg' },
+  preparing: { label: 'In the oven', cls: 'bg-accent/15 text-accent' },
+  ready: { label: 'Ready', cls: 'bg-veg/15 text-veg' },
+  out: { label: 'On the way', cls: 'bg-veg/15 text-veg' },
   delivered: { label: 'Delivered ✓', cls: 'bg-veg text-white' },
-  cancelled: { label: 'Cancelled', cls: 'bg-brand/20 text-brand' },
+  cancelled: { label: 'Cancelled', cls: 'bg-brand/15 text-brand' },
 }
 
 export function Orders() {
   const navigate = useNavigate()
+  const { dispatch } = useCart()
   const [history] = useState<OrderRecord[]>(loadOrderHistory)
   const [statuses, setStatuses] = useState<Record<string, OrderStatus>>({})
-  const [downloading, setDownloading] = useState('')
+  const [busy, setBusy] = useState('')
 
   useEffect(() => {
     let alive = true
-    // fetch live status for the recent few (older ones rarely change)
     history.slice(0, 8).forEach(async (order) => {
       const result = await fetchOrderStatus(order.code)
       if (alive && result) setStatuses((prev) => ({ ...prev, [order.code]: result.status }))
@@ -33,69 +34,97 @@ export function Orders() {
   }, [history])
 
   const receipt = async (order: OrderRecord) => {
-    setDownloading(order.code)
+    setBusy(order.code)
     try {
       await downloadReceiptPdf(order)
     } finally {
-      setDownloading('')
+      setBusy('')
     }
+  }
+
+  const reorder = (order: OrderRecord) => {
+    const lines = reorderableLines(order)
+    if (lines.length === 0) return
+    dispatch({ type: 'clear' })
+    for (const line of lines) {
+      dispatch({ type: 'add', itemId: line.itemId, variantId: line.variantId, addOnIds: line.addOnIds, qty: line.qty })
+    }
+    navigate('/cart')
   }
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface">
       <div className="flex items-center gap-3 px-5 pt-4 pb-2">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Back" className="text-xl text-white">
+        <button type="button" onClick={() => navigate(-1)} aria-label="Back" className="text-xl">
           ‹
         </button>
-        <span className="font-cond text-[22px] font-bold">My Orders</span>
+        <h1 className="font-display text-[22px] font-extrabold">Your orders</h1>
       </div>
 
       {history.length === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 px-10 text-center">
           <span className="text-4xl">🧾</span>
-          <p className="text-sm text-mut">No orders from this phone yet.</p>
-          <Link to="/menu" className="rounded-[14px] bg-brand px-6 py-2.5 text-sm font-extrabold text-white">
-            Browse Menu
+          <p className="font-display mt-2 text-xl font-extrabold">No orders yet.</p>
+          <p className="text-sm text-mut">First one's always the best one.</p>
+          <Link
+            to="/menu"
+            className="mt-5 rounded-2xl bg-brand px-7 py-3 text-sm font-extrabold text-white"
+          >
+            Browse menu
           </Link>
         </div>
       ) : (
-        <div className="flex flex-col gap-3 px-5 pt-2 pb-8">
+        <div className="flex flex-col gap-3 px-5 pt-2 pb-10">
           {history.map((order) => {
             const status = statuses[order.code]
             const chip = status ? STATUS_CHIP[status] : null
             const active = status && !['delivered', 'cancelled'].includes(status)
             const summary = order.items
               .filter((i) => i.lineTotal > 0)
-              .map((i) => `${i.qty}× ${i.name}${i.variant ? ` (${i.variant[0]})` : ''}`)
+              .map((i) => `${i.qty}× ${i.name.replace(/ Pizza$/, '')}${i.variant ? ` (${i.variant[0]})` : ''}`)
               .join(', ')
+            const canReorder = reorderableLines(order).length > 0
             return (
-              <div key={order.code} className="rounded-[16px] border border-white/5 bg-card p-4">
+              <div key={order.code} className="rounded-2xl border border-line bg-card p-4">
                 <div className="flex items-center justify-between">
-                  <span className="font-anton text-[15px] text-gold">{order.code}</span>
-                  {chip && <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${chip.cls}`}>{chip.label}</span>}
+                  <span className="font-display text-[15px] font-extrabold text-accent">{order.code}</span>
+                  {chip && (
+                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold ${chip.cls}`}>
+                      {chip.label}
+                    </span>
+                  )}
                 </div>
                 <div className="mt-1 text-[11px] text-mut">
                   {new Date(order.placedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })} ·{' '}
                   {order.fulfilment === 'delivery' ? 'Delivery' : 'Pickup'} · {order.payment.toUpperCase()}
                 </div>
                 <div className="mt-2 line-clamp-2 text-xs leading-snug text-soft">{summary}</div>
-                <div className="mt-2.5 flex items-center justify-between border-t border-line pt-2.5">
-                  <span className="text-sm font-bold">{formatINR(order.total)}</span>
+                <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-3">
+                  <span className="font-display text-[17px] font-extrabold">{formatINR(order.total)}</span>
                   <span className="flex gap-2">
                     {status === 'delivered' && (
                       <button
                         type="button"
-                        disabled={downloading === order.code}
+                        disabled={busy === order.code}
                         onClick={() => receipt(order)}
-                        className="rounded-lg bg-chip px-3 py-1.5 text-xs font-bold text-soft disabled:opacity-50"
+                        className="rounded-xl border border-line bg-chip px-3 py-2 text-[11px] font-bold text-soft disabled:opacity-50"
                       >
-                        {downloading === order.code ? 'Saving…' : '🧾 Receipt PDF'}
+                        {busy === order.code ? 'Saving…' : 'Receipt'}
+                      </button>
+                    )}
+                    {canReorder && (
+                      <button
+                        type="button"
+                        onClick={() => reorder(order)}
+                        className="rounded-xl bg-brand px-4 py-2 text-[11px] font-extrabold text-white"
+                      >
+                        Order again ↻
                       </button>
                     )}
                     {active && (
                       <Link
                         to={`/track/${order.code}`}
-                        className="rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white"
+                        className="rounded-xl border border-accent/40 bg-accent/10 px-3 py-2 text-[11px] font-extrabold text-accent"
                       >
                         Track ›
                       </Link>
@@ -105,9 +134,7 @@ export function Orders() {
               </div>
             )
           })}
-          <p className="pt-1 text-center text-[10px] text-mut">
-            Orders are saved on this phone (up to 20 recent).
-          </p>
+          <p className="pt-1 text-center text-[10px] text-mut">Saved on this phone · last 20 orders</p>
         </div>
       )}
     </div>

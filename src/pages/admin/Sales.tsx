@@ -5,11 +5,11 @@ interface Props {
   orders: AdminOrder[]
 }
 
-function Stat({ label, value, sub, color = 'text-white' }: { label: string; value: string; sub?: string; color?: string }) {
+function Stat({ label, value, sub, color = '' }: { label: string; value: string; sub?: string; color?: string }) {
   return (
     <div className="flex-1 rounded-xl bg-card p-3.5">
       <div className="text-[11px] text-mut">{label}</div>
-      <div className={`font-anton text-[26px] ${color}`}>{value}</div>
+      <div className={`font-display text-[26px] ${color}`}>{value}</div>
       <div className="text-[11px] text-mut">{sub ?? '—'}</div>
     </div>
   )
@@ -46,15 +46,15 @@ export function Sales({ orders }: Props) {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b border-white/5 px-6 py-4">
-        <span className="font-cond text-2xl font-bold text-white">Sales · Last 24h</span>
+      <div className="flex items-center justify-between border-b border-line px-6 py-4">
+        <span className="font-display text-2xl font-extrabold">Sales · Last 24h</span>
         <span className="text-xs text-mut">
           {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
         </span>
       </div>
       <div className="flex gap-3 px-6 pt-4 pb-2">
         <Stat label="Orders" value={String(active.length)} />
-        <Stat label="Revenue" value={formatINR(revenue)} color="text-gold" />
+        <Stat label="Revenue" value={formatINR(revenue)} color="text-accent" />
         <Stat label="Avg order" value={active.length ? formatINR(avg) : '—'} />
         <Stat label="Pending" value={String(pending)} sub="in kitchen" color="text-brand" />
       </div>
@@ -82,7 +82,7 @@ export function Sales({ orders }: Props) {
           <div className="text-xs font-bold text-soft">Top items</div>
           {top.map(([name, count]) => (
             <div key={name} className="flex justify-between text-xs">
-              <span className="text-white">{name}</span>
+              <span>{name}</span>
               <span className="text-mut">{count}</span>
             </div>
           ))}
