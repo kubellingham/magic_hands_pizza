@@ -15,6 +15,7 @@ import { StickyCartBar } from '../components/StickyCartBar'
 import { ActiveOrderBanner } from '../components/ActiveOrderBanner'
 import { AddressSheet } from '../components/AddressSheet'
 import { ItemImage } from '../components/ItemImage'
+import { InstallPrompt } from '../components/InstallPrompt'
 
 export function Home() {
   const navigate = useNavigate()
@@ -200,6 +201,7 @@ export function Home() {
 
       <ActiveOrderBanner />
       <StickyCartBar />
+      <InstallPrompt />
       {sheetOpen && <AddressSheet onClose={() => setSheetOpen(false)} onChanged={setProfile} />}
     </div>
   )

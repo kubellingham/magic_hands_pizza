@@ -50,10 +50,17 @@
         width: 1080px; height: 1080px; background: #0c0a09; color: #f5efe6;
         padding: 72px; display: flex; flex-direction: column;
       }
-      #whatsapp .wa-glow {
+      .wa-glow {
         position: absolute; width: 900px; height: 900px; right: -300px; top: -220px; border-radius: 50%;
         background: radial-gradient(circle at 45% 55%, rgba(255,181,36,.34), rgba(230,51,42,.18) 48%, transparent 72%);
       }
+      /* Shared by every 1080×1080 WhatsApp card */
+      .wa { width: 1080px; height: 1080px; padding: 72px; display: flex; flex-direction: column; }
+      .wa-night { background: #0c0a09; color: #f5efe6; }
+      .wa-day { background: #faf3e3; color: #221a12; }
+      .wa-qr { background: #f5efe6; padding: 18px; border-radius: 22px; }
+      .wa-foot { position: relative; border-radius: 28px; padding: 30px 38px; }
+      .wa-foot .line { font-size: 25px; margin-top: 10px }
       .pill {
         display: inline-flex; align-items: center; gap: 14px; border-radius: 999px;
         padding: 16px 34px; font-weight: 700; letter-spacing: 2px;
@@ -204,6 +211,167 @@
         <div style="margin-top: 12px; font-size: 26px; color: rgba(255,255,255,.85)">
           magic-hands-pizza-org.vercel.app · or WhatsApp
           <b style="color: #fff">96469-52001</b>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 4e · Tuesday deal card 1080×1080 · day palette ══
+         The deal runs in daylight, so this one wears the day skin — the same
+         two-shift logic the app uses. ══ -->
+    <div class="board wa wa-day" id="wa-tuesday" style="border: 16px solid #221a12">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between">
+        <div style="display: flex; align-items: center; gap: 20px">
+          <!-- The mark is drawn for a dark ground; inverting it muddies the
+               red, so it gets a dark tile instead -->
+          <div style="background: #221a12; border-radius: 18px; padding: 10px; display: flex">
+            <img src="../public/images/brand/logo.png" width="66" height="66" alt="" />
+          </div>
+          <div class="display" style="font-size: 30px; letter-spacing: 2px">MAGIC HAND'S PIZZA</div>
+        </div>
+        <span class="pill" style="background: #1e7a43; color: #fff; font-size: 23px; padding: 12px 26px">
+          EVERY TUESDAY
+        </span>
+      </div>
+
+      <div class="display" style="margin-top: 60px; font-size: 104px; line-height: 0.94">
+        Buy 2 large,<br /><span style="color: #d92f21">small one<br />rides free.</span>
+      </div>
+      <div style="margin-top: 34px; font-size: 30px; line-height: 1.45; color: #4a3f33; max-width: 560px">
+        No code, no screenshot. Put two large pizzas in the cart and the small
+        one is already free at checkout.
+      </div>
+
+      <div style="margin-top: auto; display: flex; align-items: center; gap: 34px; border-top: 3px dashed #d5c9ae; padding-top: 36px">
+        <!-- Never invert a QR: plenty of phone cameras refuse light-on-dark -->
+        <div class="wa-qr" style="border: 3px solid #221a12">
+          <img src="qr-order.svg" width="180" height="180" alt="" style="display: block" />
+        </div>
+        <div>
+          <div class="display" style="font-size: 40px; line-height: 1.2">Scan, or tap the link<br />below this photo.</div>
+          <div style="margin-top: 14px; font-size: 26px; color: #8c7a5e">
+            magic-hands-pizza-org.vercel.app<br />Free delivery near LPU · 96469-52001
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 4f · Late-night card 1080×1080 — forward this after midnight ══ -->
+    <div class="board wa wa-night" id="wa-latenight">
+      <div class="wa-glow" style="right: -340px; top: 260px"></div>
+      <div style="position: relative; display: flex; align-items: center; gap: 20px">
+        <img src="../public/images/brand/logo.png" width="80" height="80" alt="" />
+        <div class="display" style="font-size: 30px; letter-spacing: 2px">MAGIC HAND'S PIZZA</div>
+      </div>
+
+      <div class="display" style="position: relative; margin-top: 74px; font-size: 122px; line-height: 0.92">
+        Still awake?
+      </div>
+      <div class="display" style="position: relative; margin-top: 22px; font-size: 76px; line-height: 1.02; color: #ffb524">
+        Good. So is<br />the oven.
+      </div>
+      <div style="position: relative; margin-top: 40px">
+        <span class="pill" style="background: rgba(255,181,36,.14); border: 3px solid #ffb524; color: #ffb524; font-size: 27px; padding: 14px 30px">
+          ● OPEN TILL 4 AM · 25–30 MIN
+        </span>
+      </div>
+      <div style="position: relative; margin-top: 36px; font-size: 30px; line-height: 1.45; color: #c9c2b6; max-width: 620px">
+        Pizza, burgers, fried chicken and shakes — at your hostel gate while
+        the rest of Meheru is shut. No app store, no login.
+      </div>
+
+      <div style="position: relative; margin-top: auto; display: flex; align-items: center; gap: 34px">
+        <div class="wa-qr">
+          <img src="qr-order.svg" width="180" height="180" alt="" style="display: block" />
+        </div>
+        <div>
+          <div class="display" style="font-size: 40px; line-height: 1.2">
+            Scan, or tap the link<br />below this photo.
+          </div>
+          <div style="margin-top: 14px; font-size: 26px; color: #8a8378">
+            Free delivery near LPU · Meheru, Low Gate<br />
+            <b style="color: #ffb524">96469-52001</b>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 4g · Price card 1080×1080 — every figure read from src/data/menu.ts ══ -->
+    <div class="board wa wa-night" id="wa-prices">
+      <div style="position: relative; display: flex; align-items: flex-start; justify-content: space-between">
+        <div style="display: flex; align-items: center; gap: 20px">
+          <img src="../public/images/brand/logo.png" width="80" height="80" alt="" />
+          <div>
+            <div class="display" style="font-size: 30px; letter-spacing: 2px">MAGIC HAND'S PIZZA</div>
+            <div style="margin-top: 6px; font-size: 24px; color: #8a8378">Meheru, LPU Low Gate</div>
+          </div>
+        </div>
+        <span class="pill" style="background: rgba(255,181,36,.14); border: 3px solid #ffb524; color: #ffb524; font-size: 23px; padding: 12px 26px">
+          ● TILL 4 AM
+        </span>
+      </div>
+
+      <div class="display" style="position: relative; margin-top: 46px; font-size: 62px; line-height: 1">
+        What it costs.
+      </div>
+
+      <div style="position: relative; margin-top: 34px; display: flex; gap: 56px">
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 18px">
+          <div style="display: flex; justify-content: space-between; font-size: 29px; border-bottom: 2px dashed #322d27; padding-bottom: 16px">
+            <span>Margherita <span style="color: #8a8378">(S)</span></span><b style="color: #ffb524">₹89</b>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 29px; border-bottom: 2px dashed #322d27; padding-bottom: 16px">
+            <span>Farmhouse <span style="color: #8a8378">(S)</span></span><b style="color: #ffb524">₹119</b>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 29px; border-bottom: 2px dashed #322d27; padding-bottom: 16px">
+            <span>Chicken Tikka <span style="color: #8a8378">(S)</span></span><b style="color: #ffb524">₹109</b>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 29px; border-bottom: 2px dashed #322d27; padding-bottom: 16px">
+            <span>Overload <span style="color: #8a8378">(M)</span></span><b style="color: #ffb524">₹259</b>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 29px; border-bottom: 2px dashed #322d27; padding-bottom: 16px">
+            <span>Veg Sandwich</span><b style="color: #ffb524">₹69</b>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 29px">
+            <span>Burger Combo</span><b style="color: #ffb524">₹109</b>
+          </div>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 18px">
+          <div style="display: flex; justify-content: space-between; font-size: 29px; border-bottom: 2px dashed #322d27; padding-bottom: 16px">
+            <span>Crunchy Cheese Burger</span><b style="color: #ffb524">₹90</b>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 29px; border-bottom: 2px dashed #322d27; padding-bottom: 16px">
+            <span>Classic Fries</span><b style="color: #ffb524">₹90</b>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 29px; border-bottom: 2px dashed #322d27; padding-bottom: 16px">
+            <span>Chicken Popcorn</span><b style="color: #ffb524">₹170</b>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 29px; border-bottom: 2px dashed #322d27; padding-bottom: 16px">
+            <span>Peri Peri Fries</span><b style="color: #ffb524">₹100</b>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 29px; border-bottom: 2px dashed #322d27; padding-bottom: 16px">
+            <span>Oreo Shake</span><b style="color: #ffb524">₹80</b>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 29px">
+            <span>Cold Coffee</span><b style="color: #ffb524">₹70</b>
+          </div>
+        </div>
+      </div>
+
+      <div style="position: relative; margin-top: 30px; font-size: 25px; color: #8a8378">
+        90+ items on the full menu · delivery always free
+      </div>
+
+      <div style="position: relative; margin-top: auto; display: flex; align-items: center; gap: 34px">
+        <div class="wa-qr">
+          <img src="qr-order.svg" width="170" height="170" alt="" style="display: block" />
+        </div>
+        <div>
+          <div class="display" style="font-size: 38px; line-height: 1.2">
+            Full menu, live prices.<br />Scan or tap the link.
+          </div>
+          <div style="margin-top: 12px; font-size: 25px; color: #8a8378">
+            magic-hands-pizza-org.vercel.app · <b style="color: #ffb524">96469-52001</b>
+          </div>
         </div>
       </div>
     </div>

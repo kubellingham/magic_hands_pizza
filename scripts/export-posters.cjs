@@ -11,6 +11,9 @@ const { chromium } = require('playwright-core')
     ['post', 'post-1080x1080'],
     ['a3', 'hostel-wall-a3'],
     ['whatsapp', 'whatsapp-order-card-1080'],
+    ['wa-tuesday', 'whatsapp-tuesday-1080'],
+    ['wa-latenight', 'whatsapp-latenight-1080'],
+    ['wa-prices', 'whatsapp-prices-1080'],
   ]) {
     const el = await page.$('#' + id)
     if (!el) { console.log('MISSING', id); continue }
