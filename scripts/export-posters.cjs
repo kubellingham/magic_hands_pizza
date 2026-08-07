@@ -6,7 +6,12 @@ const { chromium } = require('playwright-core')
   const page = await browser.newPage({ viewport: { width: 1400, height: 2000 }, deviceScaleFactor: 2 })
   await page.goto('file:///home/user/magic_hands_pizza/marketing/posters.html', { waitUntil: 'load' })
   await page.waitForTimeout(3000)
-  for (const [id, name] of [['story', 'story-1080x1920'], ['post', 'post-1080x1080'], ['a3', 'hostel-wall-a3']]) {
+  for (const [id, name] of [
+    ['story', 'story-1080x1920'],
+    ['post', 'post-1080x1080'],
+    ['a3', 'hostel-wall-a3'],
+    ['whatsapp', 'whatsapp-order-card-1080'],
+  ]) {
     const el = await page.$('#' + id)
     if (!el) { console.log('MISSING', id); continue }
     await el.screenshot({ path: '/home/user/magic_hands_pizza/marketing/exports/' + name + '.png' })

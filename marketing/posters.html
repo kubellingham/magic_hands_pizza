@@ -45,6 +45,15 @@
         font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
         font-size: 34px; color: #ffb524; letter-spacing: 1px;
       }
+      /* 4d · WhatsApp order card 1080×1080 */
+      #whatsapp {
+        width: 1080px; height: 1080px; background: #0c0a09; color: #f5efe6;
+        padding: 72px; display: flex; flex-direction: column;
+      }
+      #whatsapp .wa-glow {
+        position: absolute; width: 900px; height: 900px; right: -300px; top: -220px; border-radius: 50%;
+        background: radial-gradient(circle at 45% 55%, rgba(255,181,36,.34), rgba(230,51,42,.18) 48%, transparent 72%);
+      }
       .pill {
         display: inline-flex; align-items: center; gap: 14px; border-radius: 999px;
         padding: 16px 34px; font-weight: 700; letter-spacing: 2px;
@@ -123,6 +132,79 @@
         <div class="tab"><span>96469-52001 ✆</span></div>
         <div class="tab"><span>96469-52001 ✆</span></div>
         <div class="tab"><span>96469-52001 ✆</span></div>
+      </div>
+    </div>
+
+    <!-- ══ 4d · WhatsApp order card 1080×1080 ══
+         Forwarded in chats and groups. The QR carries it when the image is
+         screenshotted or printed; the red bar points at the link in the
+         caption, which is what actually works when it lands on a phone. ══ -->
+    <div class="board" id="whatsapp">
+      <div class="wa-glow"></div>
+      <div style="position: relative; display: flex; align-items: flex-start; justify-content: space-between">
+        <div style="display: flex; align-items: center; gap: 22px">
+          <img src="../public/images/brand/logo.png" width="92" height="92" alt="" />
+          <div>
+            <div class="display" style="font-size: 34px; letter-spacing: 2px">MAGIC HAND'S PIZZA</div>
+            <div style="margin-top: 8px; font-size: 25px; color: #8a8378">
+              Free delivery near LPU · 25–30 min
+            </div>
+          </div>
+        </div>
+        <span class="pill" style="background: rgba(255,181,36,.14); border: 3px solid #ffb524; color: #ffb524; font-size: 25px; padding: 12px 26px">
+          ● TILL 4 AM
+        </span>
+      </div>
+
+      <div style="position: relative; margin-top: 66px; display: flex; gap: 46px; align-items: flex-start">
+        <div style="width: 590px; flex: none">
+          <div class="display" style="font-size: 90px; line-height: 0.96; white-space: nowrap">
+            The oven is<br /><span style="color: #ffb524">one tap</span><br />away.
+          </div>
+          <div style="margin-top: 36px; font-size: 30px; line-height: 1.45; color: #c9c2b6">
+            Full menu, live prices, order tracking. No app store, no login — it
+            opens straight in your browser.
+          </div>
+        </div>
+        <div style="text-align: center; flex: none">
+          <div style="background: #f5efe6; padding: 20px; border-radius: 24px">
+            <img src="qr-order.svg" width="260" height="260" alt="" style="display: block" />
+          </div>
+          <div class="display" style="margin-top: 16px; font-size: 23px; letter-spacing: 3px; color: #8a8378">
+            SCAN TO ORDER
+          </div>
+        </div>
+      </div>
+
+      <!-- Prices are the hook for a hostel audience — these are the real
+           cheapest item in each group, straight from src/data/menu.ts -->
+      <div style="position: relative; margin-top: auto; display: flex; gap: 42px; border-top: 3px dashed #322d27; padding-top: 34px; margin-bottom: 34px">
+        <div>
+          <div class="display" style="font-size: 46px; color: #ffb524">₹89</div>
+          <div style="margin-top: 4px; font-size: 24px; color: #8a8378">pizzas from</div>
+        </div>
+        <div>
+          <div class="display" style="font-size: 46px; color: #ffb524">₹50</div>
+          <div style="margin-top: 4px; font-size: 24px; color: #8a8378">burgers from</div>
+        </div>
+        <div>
+          <div class="display" style="font-size: 46px; color: #ffb524">₹70</div>
+          <div style="margin-top: 4px; font-size: 24px; color: #8a8378">shakes from</div>
+        </div>
+        <div>
+          <div class="display" style="font-size: 46px; color: #2e9e4b">FREE</div>
+          <div style="margin-top: 4px; font-size: 24px; color: #8a8378">delivery</div>
+        </div>
+      </div>
+
+      <div style="position: relative; border-radius: 28px; background: #e6332a; padding: 34px 40px">
+        <div class="display" style="font-size: 36px; line-height: 1.25">
+          On your phone? Tap the link below this photo.
+        </div>
+        <div style="margin-top: 12px; font-size: 26px; color: rgba(255,255,255,.85)">
+          magic-hands-pizza-org.vercel.app · or WhatsApp
+          <b style="color: #fff">96469-52001</b>
+        </div>
       </div>
     </div>
   </body>
