@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { fetchOrderStatus, type TrackedOrder, type OrderStatus } from '../lib/tracking'
 import { loadOrderHistory, type OrderRecord } from '../lib/orderHistory'
 import { isQueued, onOutboxChange } from '../lib/orderOutbox'
-import { RESTAURANT } from '../data/restaurant'
+import { RESTAURANT, telHref, whatsappHref } from '../data/restaurant'
+import { ContactLink } from '../components/ContactLink'
 import { formatINR } from '../lib/format'
 
 // 5s keeps the bar feeling genuinely live without hammering the free tier
@@ -174,21 +175,18 @@ export function Track() {
           <div className="text-[13px] font-bold">Anything wrong? We pick up fast.</div>
           <div className="text-[11px] text-mut">{RESTAURANT.phoneDisplay}</div>
         </div>
-        <a
-          href={`https://wa.me/${RESTAURANT.whatsappNumber}`}
-          target="_blank"
-          rel="noopener"
+        <ContactLink
+          href={whatsappHref()}
           className="rounded-xl bg-veg px-4 py-2.5 text-xs font-extrabold text-white"
         >
           WhatsApp
-        </a>
-        <a
-          href={RESTAURANT.telLink}
-          aria-label="Call the shop"
+        </ContactLink>
+        <ContactLink
+          href={telHref()}
           className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-card"
         >
           ✆
-        </a>
+        </ContactLink>
       </div>
     </div>
   )

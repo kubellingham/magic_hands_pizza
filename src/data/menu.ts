@@ -54,7 +54,7 @@ export const MENU: MenuItem[] = [
   { id: 'mexican-veg', name: 'Mexican Veg Pizza', description: 'Capsicum + Sweet Corn + Jalapeno + Mushroom', category: 'veg-pizza', isVeg: true, variants: sml(129, 229, 329), supportsAddOns: true },
   { id: 'love-flames', name: 'Love Flames Pizza', description: 'Paneer + Sweet Corn + Olives + Capsicum + Tomato + Red Paprika', category: 'veg-pizza', isVeg: true, variants: sml(129, 219, 339), supportsAddOns: true },
   { id: 'overload-veg', name: 'Overload Pizza', description: 'All toppings', category: 'veg-pizza', isVeg: true, variants: ml(259, 359), supportsAddOns: true },
-  { id: 'magic-pizza-hut-spl', name: 'Magic Pizza Hut Spl.', description: 'All toppings', category: 'veg-pizza', isVeg: true, variants: ml(349, 519), supportsAddOns: true },
+  { id: 'house-special', name: 'House Special', description: 'All toppings', category: 'veg-pizza', isVeg: true, variants: ml(349, 519), supportsAddOns: true },
 
   // ── Non-Veg Pizza (S/M/L) ────────────────────────────────────────────
   { id: 'chicken-tikka-pizza', name: 'Chicken Tikka Pizza', description: 'Chicken Tikka + Onion + Tomato, topped with mozzarella cheese', category: 'nonveg-pizza', isVeg: false, variants: sml(109, 209, 309), supportsAddOns: true },
@@ -99,7 +99,7 @@ export const MENU: MenuItem[] = [
   { id: 'jammu-masala-sandwich', name: 'Jammu Masala Sandwich', category: 'sandwiches', isVeg: true, variants: std(100) },
   { id: 'veg-spl-sandwich', name: 'Veg Spl. Sandwich', category: 'sandwiches', isVeg: true, variants: std(110) },
   { id: 'nonveg-spl-sandwich', name: 'Non-Veg Spl. Sandwich', category: 'sandwiches', isVeg: false, variants: std(120) },
-  { id: 'magic-hand-masala-sandwich', name: 'Spl. Magic Hand Masala Sandwich', category: 'sandwiches', isVeg: true, variants: std(150) },
+  { id: 'house-masala-sandwich', name: 'House Spl. Masala Sandwich', category: 'sandwiches', isVeg: true, variants: std(150) },
 
   // ── Noodles ──────────────────────────────────────────────────────────
   { id: 'noodles', name: 'Noodles', category: 'noodles', isVeg: true, variants: vegNonveg(90, 129) },

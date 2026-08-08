@@ -1,9 +1,20 @@
-# Magic Hand's Pizza — Ordering PWA 🍕
+# Corner Oven Pizza — Ordering PWA 🍕
 
 *The light that's still on.*
 
-An installable, offline-capable Progressive Web App for **Magic Hand's Pizza**
-(Opp. Green Valley, near Kapoor Castle PG, Vill. Meheru, LPU — open 11 AM to 4 AM).
+An installable, offline-capable Progressive Web App for a late-night pizza
+counter: customers browse, order and track; the kitchen runs the night from a
+dashboard built for one pair of floury hands.
+
+> **This is a demo build.** It was written as a working ordering system for a
+> real restaurant near a university. That arrangement ended, so every detail
+> identifying them — name, logo, phone number, address, payment QR — has been
+> replaced with a fictional one, their customers' records were deleted, and
+> `DEMO` in `src/data/restaurant.ts` disables every outbound link so nothing
+> here can reach a real person's phone. The engineering is untouched.
+>
+> To point it at a real business: set `DEMO = false` and fill in the details in
+> that same file.
 
 ## One brand, two shifts
 
@@ -28,7 +39,7 @@ Two sides in one app:
 
 - **Customer app** (mobile) — browse the full menu, build a cart with sizes and
   add-ons, place an order that is saved to the database **and** delivered to the
-  owner's WhatsApp (96469-52001) as a pre-filled itemized message, then track it live.
+  owner's WhatsApp (00000-00000) as a pre-filled itemized message, then track it live.
 - **Kitchen dashboard** (`/admin`, desktop/tablet) — staff log in to a
   night-kitchen orders board (New → In the oven → On the road), a kitchen
   screen, menu & stock, home-screen controls, day report and staff admin.

@@ -71,7 +71,7 @@ export function addressLabel(address: string): string {
     .map((p) => p.trim())
     .filter(Boolean)
   if (parts.length === 0) return address.trim()
-  // "Room 214, Kapoor Castle PG, Meheru" → "Kapoor Castle PG"
+  // "Room 214, Sunrise PG, Campus Road" → "Sunrise PG"
   const named = parts.find((p) => /[a-z]/i.test(p) && !/^room\b|^flat\b|^#/i.test(p))
   const label = named ?? parts[0]
   return label.length <= 26 ? label : label.slice(0, 26) + '…'

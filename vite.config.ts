@@ -19,9 +19,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
-        name: "Magic Hand's Pizza",
-        short_name: 'Magic Hands',
-        description: 'Fresh pizza near LPU, Meheru — open till 4 AM. Order on WhatsApp.',
+        name: 'Corner Oven Pizza',
+        short_name: 'Corner Oven',
+        description: 'Late-night pizza ordering PWA — demo build of a real restaurant app.',
         start_url: '/',
         display: 'standalone',
         theme_color: '#100d0b',

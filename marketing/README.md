@@ -1,6 +1,6 @@
 # Marketing artboards
 
-`posters.html` holds three true-size artboards in the Magic Hand's brand
+`posters.html` holds three true-size artboards in the Corner Oven brand
 (Bricolage Grotesque + Instrument Sans, midnight-oven and corner-counter palettes).
 
 Open it in a browser to edit the copy, then re-export:

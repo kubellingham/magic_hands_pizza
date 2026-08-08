@@ -3,6 +3,7 @@ import type { AdminOrder } from './adminData'
 import type { OrderStatus } from '../../lib/tracking'
 import type { OrderRecord } from '../../lib/orderHistory'
 import { downloadReceiptPdf, buildReceiptMessage, buildCustomerWaLink } from '../../lib/receipt'
+import { ContactLink } from '../../components/ContactLink'
 import { formatINR } from '../../lib/format'
 
 interface Props {
@@ -282,14 +283,12 @@ export function LiveBoard({ orders, setStatus }: Props) {
               The PDF just downloaded. Send {receiptFor.customer_name} the message and{' '}
               <b className="text-soft">attach the PDF</b> in the chat.
             </p>
-            <a
+            <ContactLink
               href={buildCustomerWaLink(receiptFor.phone, buildReceiptMessage(toReceiptRecord(receiptFor)))}
-              target="_blank"
-              rel="noopener"
               className="mt-5 block w-full rounded-2xl bg-veg py-3.5 text-center text-sm font-extrabold text-white"
             >
               Send receipt on WhatsApp
-            </a>
+            </ContactLink>
             <button
               type="button"
               onClick={() => downloadReceiptPdf(toReceiptRecord(receiptFor))}

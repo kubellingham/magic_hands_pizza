@@ -84,7 +84,7 @@ browned cheese spots across the top.
 | `mexican-veg.jpg` | Mexican Veg pizza | diced capsicum, sweet corn, sliced jalapeño and mushroom |
 | `love-flames.jpg` | Love Flames pizza | cubes of paneer, sweet corn, black olives, capsicum, tomato and strips of red paprika |
 | `overload-veg.jpg` | Overload pizza | every vegetable topping at once — paneer, capsicum, onion, sweet corn, mushroom, black olives, jalapeño and red paprika — piled thickly and unevenly |
-| `magic-pizza-hut-spl.jpg` | Magic Pizza Hut Special pizza | every vegetable topping piled so thickly the cheese is barely visible between them |
+| `house-special.jpg` | House Special pizza | every vegetable topping piled so thickly the cheese is barely visible between them |
 
 ### Non-veg pizzas
 
@@ -218,7 +218,7 @@ lightly stained where the food sits.
 | `jammu-masala-sandwich.jpg` | grilled masala sandwich | cut into two triangles, spiced potato masala filling visible at the cut edge |
 | `veg-spl-sandwich.jpg` | grilled special veg sandwich | cut into two triangles, stacked thick with vegetables and cheese in three layers of bread |
 | `nonveg-spl-sandwich.jpg` | grilled special chicken sandwich | cut into two triangles, stacked thick with chicken and cheese in three layers of bread |
-| `magic-hand-masala-sandwich.jpg` | grilled special masala sandwich | cut into two triangles, stacked thick with spiced masala filling and cheese |
+| `house-masala-sandwich.jpg` | grilled special masala sandwich | cut into two triangles, stacked thick with spiced masala filling and cheese |
 
 ### Wrap and combos
 

@@ -2,7 +2,7 @@ import { buildOrderMessage, buildWaLink, type OrderDetails } from './whatsapp'
 import { insertOrderRow, queueOrder, type OrderRow } from './orderOutbox'
 
 export function generateOrderCode(): string {
-  return 'MH-' + Date.now().toString(36).toUpperCase().slice(-6)
+  return 'CO-' + Date.now().toString(36).toUpperCase().slice(-6)
 }
 
 export interface PlaceOrderResult {
@@ -12,6 +12,8 @@ export interface PlaceOrderResult {
   payment: 'upi' | 'cod'
   /** false when the DB insert failed — the order is parked in the outbox and retried */
   savedToDb: boolean
+  /** The WhatsApp text itself, shown instead of sent when waLink is empty */
+  message: string
 }
 
 const clamp = (text: string, max: number) => text.trim().slice(0, max)
@@ -60,7 +62,8 @@ export function buildOrderRow(order: OrderDetails): OrderRow {
  * order, so we always return the wa.me link — and park the row for retry.
  */
 export async function placeOrder(order: OrderDetails): Promise<PlaceOrderResult> {
-  const waLink = buildWaLink(buildOrderMessage(order))
+  const message = buildOrderMessage(order)
+  const waLink = buildWaLink(message) ?? ''
   const row = buildOrderRow(order)
 
   const { ok, error } = await insertOrderRow(row)
@@ -69,5 +72,12 @@ export async function placeOrder(order: OrderDetails): Promise<PlaceOrderResult>
     queueOrder(row, error)
   }
 
-  return { orderCode: order.orderCode, waLink, toPay: order.bill.toPay, payment: order.payment, savedToDb: ok }
+  return {
+    orderCode: order.orderCode,
+    waLink,
+    message,
+    toPay: order.bill.toPay,
+    payment: order.payment,
+    savedToDb: ok,
+  }
 }

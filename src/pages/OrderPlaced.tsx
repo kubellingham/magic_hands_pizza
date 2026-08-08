@@ -109,6 +109,23 @@ export function OrderPlaced() {
           </div>
         </div>
 
+        {/* Demo build: show the message that would be sent, rather than
+            opening a chat with somebody's real business */}
+        {state && !state.waLink && (
+          <div className="mt-6 rounded-2xl border border-accent/40 bg-accent/8 p-4">
+            <div className="font-display text-[13px] font-extrabold tracking-wide text-accent">
+              DEMO BUILD — NOTHING WAS SENT
+            </div>
+            <p className="mt-1.5 text-[12px] leading-relaxed text-mut">
+              In the live app this opens WhatsApp with the message below already typed, addressed to
+              the shop. Your order is on the kitchen dashboard either way.
+            </p>
+            <pre className="mt-3 max-h-52 overflow-y-auto rounded-xl bg-bg p-3 text-[11px] leading-relaxed whitespace-pre-wrap text-soft">
+              {state.message}
+            </pre>
+          </div>
+        )}
+
         {pending && (
           <div className="mt-4 rounded-2xl border border-accent/40 bg-accent/8 px-4 py-3 text-[12px] leading-relaxed">
             <b className="text-accent">Weak signal.</b> Your WhatsApp message is what counts, and it's

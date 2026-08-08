@@ -1,4 +1,4 @@
-import { RESTAURANT } from '../data/restaurant'
+import { RESTAURANT, customerWhatsappHref } from '../data/restaurant'
 import type { OrderRecord } from './orderHistory'
 
 /**
@@ -33,7 +33,7 @@ export async function downloadReceiptPdf(order: OrderRecord): Promise<void> {
   doc.setTextColor(...INK)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(15)
-  doc.text("Magic Hand's Pizza", W / 2, y, { align: 'center' })
+  doc.text(RESTAURANT.name, W / 2, y, { align: 'center' })
   y += 4.5
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(6.5)
@@ -176,6 +176,7 @@ export function buildReceiptMessage(order: OrderRecord): string {
   return lines.join('\n')
 }
 
-export function buildCustomerWaLink(customerPhone: string, message: string): string {
-  return `https://wa.me/91${customerPhone}?text=${encodeURIComponent(message)}`
+/** Null in the demo build — a receipt must never reach a real customer. */
+export function buildCustomerWaLink(customerPhone: string, message: string): string | null {
+  return customerWhatsappHref(customerPhone, message)
 }

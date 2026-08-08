@@ -59,9 +59,9 @@ export function Diag() {
     setProbe('sending…')
     const started = Date.now()
     const { ok, error } = await insertOrderRow({
-      order_code: 'MH-TEST' + Date.now().toString(36).toUpperCase().slice(-3),
+      order_code: 'CO-TEST' + Date.now().toString(36).toUpperCase().slice(-3),
       customer_name: 'DIAGNOSTIC — safe to delete',
-      phone: profile.phone && /^[6-9][0-9]{9}$/.test(profile.phone) ? profile.phone : '9646952001',
+      phone: profile.phone && /^[6-9][0-9]{9}$/.test(profile.phone) ? profile.phone : '9000000000',
       address: 'Diagnostic check from /diag',
       notes: null,
       items: [{ item: 'Diagnostic', variant: null, addOns: [], qty: 1, lineTotal: 1 }],

@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import { RESTAURANT } from '../data/restaurant'
+import { ContactLink } from '../components/ContactLink'
+import { RESTAURANT, telHref, whatsappHref } from '../data/restaurant'
 import { isOpenNow } from '../lib/format'
 import { Logo } from '../components/Logo'
 
@@ -24,7 +25,7 @@ export function About() {
             <span className="text-accent">still on.</span>
           </p>
           <p className="mt-3 max-w-[280px] text-center text-[13px] leading-relaxed text-mut">
-            When every other kitchen near LPU goes dark at 11, we&rsquo;re still firing till 4 AM.
+            When every other kitchen on the street goes dark at 11, we&rsquo;re still firing till 4 AM.
           </p>
         </div>
 
@@ -41,7 +42,7 @@ export function About() {
             </div>
             <div className="flex items-center gap-3">
               <span className="w-5">🛵</span>
-              <span>Free delivery near LPU (conditions apply)</span>
+              <span>Free delivery around campus (conditions apply)</span>
             </div>
             <div className="flex items-center gap-3">
               <span className="w-5">⏱️</span>
@@ -58,20 +59,18 @@ export function About() {
           </div>
 
           <div className="mt-5 grid grid-cols-2 gap-3">
-            <a
-              href={RESTAURANT.telLink}
-              className="rounded-2xl border border-brand py-3 text-center text-sm font-bold text-brand"
+            <ContactLink
+              href={telHref()}
+              className="block rounded-2xl border border-brand py-3 text-center text-sm font-bold text-brand"
             >
               Call us
-            </a>
-            <a
-              href={`https://wa.me/${RESTAURANT.whatsappNumber}`}
-              target="_blank"
-              rel="noopener"
-              className="rounded-2xl bg-veg py-3 text-center text-sm font-bold text-white"
+            </ContactLink>
+            <ContactLink
+              href={whatsappHref()}
+              className="block rounded-2xl bg-veg py-3 text-center text-sm font-bold text-white"
             >
               WhatsApp
-            </a>
+            </ContactLink>
           </div>
           <a
             href={RESTAURANT.mapsUrl}
@@ -85,7 +84,7 @@ export function About() {
       </div>
 
       <p className="mt-auto px-5 py-6 text-center text-[11px] text-mut">
-        Magic Hand&rsquo;s Pizza · {RESTAURANT.phoneDisplay} · Meheru, LPU
+        {RESTAURANT.name} · demo build · no live phone line
       </p>
     </div>
   )

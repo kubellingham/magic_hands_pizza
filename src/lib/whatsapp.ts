@@ -1,5 +1,5 @@
 import type { Bill, PricedLine } from '../cart/selectors'
-import { RESTAURANT } from '../data/restaurant'
+import { RESTAURANT, whatsappHref } from '../data/restaurant'
 import { formatINR } from './format'
 
 export interface OrderDetails {
@@ -52,6 +52,7 @@ export function buildOrderMessage(order: OrderDetails): string {
   return lines.join('\n')
 }
 
-export function buildWaLink(message: string): string {
-  return `https://wa.me/${RESTAURANT.whatsappNumber}?text=${encodeURIComponent(message)}`
+/** Null in the demo build, where the hand-off is shown rather than performed. */
+export function buildWaLink(message: string): string | null {
+  return whatsappHref(message)
 }

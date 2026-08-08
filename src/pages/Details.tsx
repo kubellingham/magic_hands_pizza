@@ -66,7 +66,7 @@ export function Details() {
           🧾 Orders
         </Link>
         <Logo size="lg" />
-        <div className="mt-2 text-[11px] text-mut">Meheru, LPU Low Gate · {RESTAURANT.hoursDisplay}</div>
+        <div className="mt-2 text-[11px] text-mut">Campus Road · {RESTAURANT.hoursDisplay}</div>
       </div>
 
       <div className="px-5 pt-6">

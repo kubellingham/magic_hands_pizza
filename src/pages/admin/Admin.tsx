@@ -157,7 +157,7 @@ function Dashboard({ onSignOut, currentEmail }: { onSignOut: () => void; current
         <div className="flex items-center gap-2.5 px-5 pb-5">
           <Logo size="sm" />
           <div>
-            <div className="font-display text-[14px] leading-none font-extrabold">Magic Hand&rsquo;s</div>
+            <div className="font-display text-[14px] leading-none font-extrabold">Corner Oven</div>
             <div className="mt-1 text-[9px] font-bold tracking-[1.5px] text-mut">
               {shift === 'night' ? 'NIGHT SHIFT' : 'DAY SHIFT'} ·{' '}
               {new Date().toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}
